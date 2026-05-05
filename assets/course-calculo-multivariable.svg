@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso calculo multivariable</title>
+  <desc id="d">Visual de superficie 3D, curvas de nivel y campo vectorial para calculo multivariable.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06080f"/>
+      <stop offset="100%" stop-color="#1a2236"/>
+    </linearGradient>
+    <linearGradient id="surf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#88cbff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#2d7dff" stop-opacity="0.25"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="640" cy="90" r="125" fill="#ff3f69" opacity="0.25"/>
+
+  <g stroke="#2e93ff" stroke-width="1.7" opacity="0.35">
+    <path d="M70 110h660M70 170h660M70 230h660M70 290h660M70 350h660M70 410h660"/>
+    <path d="M110 80v360M190 80v360M270 80v360M350 80v360M430 80v360M510 80v360M590 80v360M670 80v360"/>
+  </g>
+
+  <path d="M120 360C190 260 260 250 330 300C400 350 470 340 540 270C610 200 665 195 710 225L710 380L120 380Z" fill="url(#surf)"/>
+  <path d="M120 360C190 260 260 250 330 300C400 350 470 340 540 270C610 200 665 195 710 225" fill="none" stroke="#9cd4ff" stroke-width="7" stroke-linecap="round"/>
+
+  <g fill="none" stroke="#ff89a8" stroke-width="3" opacity="0.9">
+    <ellipse cx="285" cy="330" rx="58" ry="22"/>
+    <ellipse cx="390" cy="320" rx="72" ry="26"/>
+    <ellipse cx="520" cy="285" rx="82" ry="28"/>
+  </g>
+
+  <g stroke="#d9ecff" stroke-width="5" stroke-linecap="round">
+    <path d="M170 190L215 170"/>
+    <path d="M260 235L305 208"/>
+    <path d="M350 210L395 180"/>
+    <path d="M450 250L500 220"/>
+    <path d="M560 225L610 196"/>
+  </g>
+
+  <g fill="#d9ecff">
+    <circle cx="215" cy="170" r="6"/>
+    <circle cx="305" cy="208" r="6"/>
+    <circle cx="395" cy="180" r="6"/>
+    <circle cx="500" cy="220" r="6"/>
+    <circle cx="610" cy="196" r="6"/>
+  </g>
+</svg>

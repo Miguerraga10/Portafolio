@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Catalogo de Matematicas</title>
+  <desc id="desc">Ilustracion abstracta con ecuaciones y grafica en tonos azul y rojo.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#05070d"/>
+      <stop offset="100%" stop-color="#0f1628"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <path d="M80 390 L180 250 L260 320 L360 170 L440 260 L560 120 L700 250" fill="none" stroke="#1a5fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="560" cy="120" r="12" fill="#ff174b"/>
+  <circle cx="360" cy="170" r="10" fill="#ff174b"/>
+  <g stroke="#3ea2ff" stroke-opacity="0.5">
+    <path d="M120 80v340M220 80v340M320 80v340M420 80v340M520 80v340M620 80v340"/>
+    <path d="M80 120h640M80 190h640M80 260h640M80 330h640M80 400h640"/>
+  </g>
+  <g fill="#f2f9ff" font-size="52" font-family="Segoe UI, Arial, sans-serif" font-weight="700">
+    <text x="86" y="145">f(x)=x²+3x-5</text>
+    <text x="398" y="420">sum n=1..inf</text>
+  </g>
+</svg>

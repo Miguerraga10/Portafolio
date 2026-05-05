@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso calculo diferencial</title>
+  <desc id="d">Curvas y pendientes estilizadas sobre una grilla.</desc>
+  <rect width="800" height="500" fill="#06080f"/>
+  <g stroke="#2f93ff" stroke-width="1.5" opacity="0.28">
+    <path d="M70 90h660M70 150h660M70 210h660M70 270h660M70 330h660M70 390h660"/>
+    <path d="M120 70v360M210 70v360M300 70v360M390 70v360M480 70v360M570 70v360M660 70v360"/>
+  </g>
+  <path d="M90 355C170 320 220 210 320 235C420 260 500 360 710 120" fill="none" stroke="#84c7ff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M90 395C185 345 290 360 380 320C470 280 580 260 710 300" fill="none" stroke="#ff6f95" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="320" cy="235" r="12" fill="#d8eeff"/>
+  <circle cx="500" cy="360" r="10" fill="#ffd6e0"/>
+</svg>

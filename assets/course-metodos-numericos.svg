@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso metodos numericos</title>
+  <desc id="d">Ilustracion abstracta de iteraciones numericas con parabola, tangentes y convergencia.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0b12"/>
+      <stop offset="100%" stop-color="#211625"/>
+    </linearGradient>
+    <linearGradient id="parab" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#67d4ff"/>
+      <stop offset="100%" stop-color="#4df0c8"/>
+    </linearGradient>
+    <linearGradient id="iter" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffb24d"/>
+      <stop offset="100%" stop-color="#ff6b8a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="660" cy="95" r="118" fill="#ff7c5d" opacity="0.16"/>
+  <circle cx="150" cy="430" r="130" fill="#2f93ff" opacity="0.11"/>
+
+  <g opacity="0.24" stroke="#e9d7ff" stroke-width="1.2">
+    <path d="M70 80H730M70 130H730M70 180H730M70 230H730M70 280H730M70 330H730M70 380H730M70 430H730"/>
+    <path d="M90 60V450M160 60V450M230 60V450M300 60V450M370 60V450M440 60V450M510 60V450M580 60V450M650 60V450M720 60V450"/>
+  </g>
+
+  <g stroke-linecap="round">
+    <path d="M105 395H705" stroke="#d2def0" stroke-width="6"/>
+    <path d="M145 425V95" stroke="#d2def0" stroke-width="6"/>
+  </g>
+
+  <path d="M165 130C225 295 305 380 410 383C525 386 605 314 685 130" fill="none" stroke="url(#parab)" stroke-width="8" stroke-linecap="round"/>
+
+  <g fill="none" stroke="url(#iter)" stroke-width="4" stroke-linecap="round" opacity="0.95">
+    <path d="M590 395L590 248L500 395L500 305L450 395L450 338L425 395"/>
+    <path d="M315 395L315 360L340 395L340 348L352 395"/>
+  </g>
+
+  <g fill="#ffe2b5">
+    <circle cx="590" cy="248" r="6"/>
+    <circle cx="500" cy="305" r="6"/>
+    <circle cx="450" cy="338" r="6"/>
+    <circle cx="425" cy="356" r="6"/>
+    <circle cx="315" cy="360" r="5"/>
+    <circle cx="340" cy="348" r="5"/>
+    <circle cx="352" cy="343" r="5"/>
+  </g>
+
+  <g stroke="#b5ffe3" stroke-width="4" stroke-linecap="round" opacity="0.9">
+    <path d="M195 220L262 256"/>
+    <path d="M242 175L309 213"/>
+    <path d="M292 138L357 178"/>
+  </g>
+</svg>

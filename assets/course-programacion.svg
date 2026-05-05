@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Catalogo de Programacion</title>
+  <desc id="desc">Ilustracion abstracta de codigo con detalles azules y rojos.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#05070d"/>
+      <stop offset="100%" stop-color="#0f1628"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <rect x="90" y="90" width="620" height="320" rx="20" fill="#0c1120" stroke="#1a5fff" stroke-width="4"/>
+  <circle cx="130" cy="128" r="7" fill="#ff174b"/>
+  <circle cx="155" cy="128" r="7" fill="#3ea2ff"/>
+  <circle cx="180" cy="128" r="7" fill="#ff174b"/>
+  <g stroke="#3ea2ff" stroke-width="8" stroke-linecap="round">
+    <path d="M220 210l-50 40 50 40"/>
+    <path d="M580 210l50 40-50 40"/>
+    <path d="M370 190l-35 120"/>
+  </g>
+  <g fill="#f2f9ff" font-size="36" font-family="Consolas, 'Courier New', monospace">
+    <text x="250" y="205">function run() {</text>
+    <text x="250" y="250" fill="#ff5b82">  return solve();</text>
+    <text x="250" y="295">}</text>
+  </g>
+</svg>

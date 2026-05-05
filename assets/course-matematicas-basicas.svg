@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso matematicas basicas</title>
+  <desc id="d">Ilustracion de base matematica con abaco, regla y figuras geometricas.</desc>
+  <rect width="800" height="500" fill="#070913"/>
+
+  <rect x="110" y="110" width="300" height="280" rx="16" fill="#0f1727" stroke="#4ca5ff" stroke-width="4"/>
+  <rect x="130" y="130" width="260" height="40" rx="10" fill="#14213a"/>
+  <circle cx="160" cy="150" r="8" fill="#ff6b90"/>
+  <circle cx="185" cy="150" r="8" fill="#7fc3ff"/>
+
+  <g fill="#7fc3ff">
+    <rect x="140" y="190" width="52" height="52" rx="10"/>
+    <rect x="208" y="190" width="52" height="52" rx="10"/>
+    <rect x="276" y="190" width="52" height="52" rx="10"/>
+    <rect x="344" y="190" width="36" height="120" rx="10" fill="#ff7b9f"/>
+    <rect x="140" y="258" width="52" height="52" rx="10"/>
+    <rect x="208" y="258" width="52" height="52" rx="10"/>
+    <rect x="276" y="258" width="52" height="52" rx="10"/>
+  </g>
+
+  <g stroke="#9bd2ff" stroke-width="6" stroke-linecap="round">
+    <path d="M500 130V370"/>
+    <path d="M560 130V370"/>
+    <path d="M620 130V370"/>
+    <path d="M680 130V370"/>
+  </g>
+
+  <g fill="#ff6f95">
+    <circle cx="500" cy="180" r="16"/>
+    <circle cx="560" cy="220" r="16"/>
+    <circle cx="620" cy="180" r="16"/>
+    <circle cx="680" cy="220" r="16"/>
+    <circle cx="500" cy="300" r="16"/>
+    <circle cx="560" cy="340" r="16"/>
+    <circle cx="620" cy="300" r="16"/>
+    <circle cx="680" cy="340" r="16"/>
+  </g>
+
+  <path d="M460 410L720 410" stroke="#76bfff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M460 410L460 360" stroke="#76bfff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M720 410L720 360" stroke="#76bfff" stroke-width="10" stroke-linecap="round"/>
+</svg>

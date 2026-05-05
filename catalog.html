@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cursos por Area - Miguel</title>
+  <link rel="icon" type="image/png" href="assets/M10.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="index.html"><img src="assets/M10.png" alt="M10 logo" class="brand-logo"> Miguel Angel Villarraga Franco</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menu">☰</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="about.html">Quien soy</a></li>
+        <li><a href="courses.html" class="active">Cursos</a></li>
+        <li><a href="projects.html">Proyectos</a></li>
+        <li><a href="ganar-dinero.html">Ganar dinero</a></li>
+        <li><a href="Sigma-planner-web/sigma.html" class="nav-sigma">Horarios SIA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section container">
+      <a href="courses.html" class="btn ghost" style="margin-bottom: 1rem;">Volver a catalogos</a>
+      <div class="catalog-heading-row">
+        <h2 id="catalog-title">Catalogo</h2>
+        <div class="catalog-sort-controls" aria-label="Opciones de orden del catalogo">
+          <button id="catalog-sort-criterion" class="btn ghost catalog-sort-criterion" type="button" aria-label="Cambiar criterio de orden" title="Ordenar por curso">
+            Curso
+          </button>
+          <button id="catalog-sort-toggle" class="btn ghost catalog-sort-toggle" type="button" aria-label="Cambiar direccion del orden" title="Orden ascendente">
+            ↑
+          </button>
+        </div>
+      </div>
+      <div id="catalog-courses-list" class="cards-grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>© 2026 Miguel Angel Villarraga Franco - Todos los derechos reservados</div>
+      <div class="socials">Aprender un poco cada dia cambia tu futuro.</div>
+    </div>
+  </footer>
+
+  <script src="js/data.js?v=20260310-9"></script>
+  <script src="js/app.js?v=20260310-9"></script>
+</body>
+</html>

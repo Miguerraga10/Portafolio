@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso algebra lineal</title>
+  <desc id="d">Ilustracion con vectores y una matriz abstracta.</desc>
+  <rect width="800" height="500" fill="#06070d"/>
+  <rect x="110" y="95" width="260" height="310" rx="18" fill="#0f1728" stroke="#2f93ff" stroke-width="3"/>
+  <g fill="#9fd1ff">
+    <circle cx="165" cy="150" r="10"/><circle cx="245" cy="150" r="10"/><circle cx="325" cy="150" r="10"/>
+    <circle cx="165" cy="220" r="10"/><circle cx="245" cy="220" r="10"/><circle cx="325" cy="220" r="10"/>
+    <circle cx="165" cy="290" r="10"/><circle cx="245" cy="290" r="10"/><circle cx="325" cy="290" r="10"/>
+    <circle cx="165" cy="360" r="10"/><circle cx="245" cy="360" r="10"/><circle cx="325" cy="360" r="10"/>
+  </g>
+  <g stroke-linecap="round" fill="none">
+    <path d="M430 360L530 150" stroke="#7bc0ff" stroke-width="12"/>
+    <path d="M430 360L670 220" stroke="#ff6d94" stroke-width="12"/>
+    <path d="M430 360L610 360" stroke="#a9d6ff" stroke-width="12"/>
+  </g>
+  <circle cx="430" cy="360" r="16" fill="#e7f4ff"/>
+</svg>

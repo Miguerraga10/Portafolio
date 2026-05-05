@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sigma Planner</title>
+  <link rel="icon" href="Img/Sigma-Icono.png" type="image/png">
+  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0000000000000000" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="../index.html"><img src="../assets/M10.png" alt="M10 logo" class="brand-logo"> Miguel Angel Villarraga Franco</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú">☰</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="../about.html">Quién soy</a></li>
+        <li><a href="../courses.html">Cursos</a></li>
+        <li><a href="../projects.html">Proyectos</a></li>
+        <li><a href="../ganar-dinero.html">Ganar dinero</a></li>
+        <li><a href="sigma.html" class="nav-sigma active">Horarios SIA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="generationProgress" class="generation-progress hidden" aria-live="polite" aria-label="Progreso de generacion de horarios">
+    <div class="generation-progress__meta">
+      <span id="generationProgressText">Calculando horario...</span>
+      <span id="generationProgressPercent">0%</span>
+    </div>
+    <div class="generation-progress__track">
+      <div id="generationProgressFill" class="generation-progress__fill"></div>
+    </div>
+  </section>
+
+  <main>
+    <section class="sigma-ads-top" aria-label="Publicidad superior">
+      <ins class="adsbygoogle sigma-ad sigma-ad-premium"
+        style="display:block"
+        data-ad-client="ca-pub-0000000000000000"
+        data-ad-slot="1111111111"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </section>
+    <div class="sigma-brand">
+      <img class="sigma-logo" src="Img/Sigma-Logo.png" alt="Sigma Planner" />
+    </div>
+    <section class="import-panel fullwidth">
+      <label>Universidad:
+        <select id="universidadSelect">
+          <option value="">-- elegir --</option>
+          <option value="unal">Universidad Nacional</option>
+          <option value="udea">Universidad de Antioquia</option>
+          <option value="otro">Otro</option>
+        </select>
+      </label>
+      <label>Sede:
+        <select id="sedeSelect" disabled><option value="">-- --</option></select>
+      </label>
+      <label>Facultad: <select id="facultadSelect" disabled><option value="">-- --</option></select></label>
+      <label>Carrera: <select id="carreraImportSelect" disabled><option value="">-- --</option></select></label>
+      <!-- botones de carga eliminados (se manejan por import desde repo manualmente) -->
+      <div id="importRowSection" class="field-row import-row">
+        <label>Pegar materias:
+          <textarea id="materiasText" rows="3" placeholder='Pega aquí el texto de materias'></textarea>
+        </label>
+        <!-- Nivel y Sede eliminados según petición -->
+        <label>Historial académico:
+          <textarea id="historialText" rows="3" placeholder="Pega aquí el historial académico para extraer aprobadas" style="width:100%;box-sizing:border-box"></textarea>
+        </label>
+      </div>
+      <div id="histResult" class="status hidden" style="grid-column:1/-1"></div>
+
+      <div id="customMateriaForm" class="panel-card hidden" style="grid-column:1/-1;margin-top:8px;padding:10px 12px">
+        <h4 style="margin:0 0 8px;font-size:13px">Nueva materia personalizada</h4>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;flex:2;min-width:130px">Nombre
+            <input id="cmNombre" type="text" placeholder="Ej: Cálculo I">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:90px">Código
+            <input id="cmCodigo" type="text" placeholder="Ej: 1000001">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:60px">Créditos
+            <input id="cmCreditos" type="number" value="3" min="1" max="20">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:105px">Tipo
+            <select id="cmTipo">
+              <option value="obligatoria">Obligatoria</option>
+              <option value="optativa">Optativa</option>
+            </select>
+          </label>
+        </div>
+        <div id="cmGruposContainer"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+          <button id="cmAddGrupoBtn" type="button" style="padding:5px 12px;font-size:12px">+ Grupo</button>
+          <button id="cmAddMateriaBtn" type="button" style="padding:5px 14px;font-size:12px">Agregar materia</button>
+          <span id="cmStatus" style="font-size:12px;margin-left:4px"></span>
+        </div>
+      </div>
+
+      <!-- Filtrar por carrera eliminado -->
+
+      <!-- Los controles de opciones se muestran ahora en el panel junto a los intervalos -->
+    </section>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="side-by-side" style="display:flex;gap:12px;align-items:flex-start">
+          <section class="loaded-materias panel-card" style="flex:2;min-width:420px">
+            <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0/15 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
+            <div id="loadedMaterias" class="panel">
+              <div class="muted">No hay materias cargadas.</div>
+            </div>
+            <div style="margin-top:8px">
+              <button id="selectAllBtn">Seleccionar todo</button>
+              <button id="deselectAllBtn">Deseleccionar todo</button>
+              <button id="clearAllBtn" class="secondary">Eliminar todo</button>
+            </div>
+          </section>
+
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <section class="intervalos-panel panel-card" style="width:320px;min-width:260px">
+            <h3>Intervalos libres</h3>
+            <div class="field-row">
+              <label>Hora inicio: <input id="intervalStart" type="time" value="12:00"></label>
+              <label>Hora fin: <input id="intervalEnd" type="time" value="14:00"></label>
+            </div>
+            <label>Días:
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+                <label><input type="checkbox" class="diasChk" value="LUNES"> Lun</label>
+                <label><input type="checkbox" class="diasChk" value="MARTES"> Mar</label>
+                <label><input type="checkbox" class="diasChk" value="MIÉRCOLES"> Mié</label>
+                <label><input type="checkbox" class="diasChk" value="JUEVES"> Jue</label>
+                <label><input type="checkbox" class="diasChk" value="VIERNES"> Vie</label>
+                <label><input type="checkbox" class="diasChk" value="SÁBADO"> Sáb</label>
+                <label><input type="checkbox" class="diasChk" value="DOMINGO"> Dom</label>
+              </div>
+            </label>
+            <button id="addIntervalBtn" class="interval-add" aria-label="Añadir intervalo" title="Añadir intervalo">+</button>
+            <div id="intervalList" class="status" style="margin-top:8px"></div>
+            </section>
+
+            <section class="opciones-panel panel-card" style="width:320px;min-width:260px">
+              <h3>Opciones</h3>
+              <div class="field-row">
+                <label>Max cr: <input id="maxCred" type="number" min="1" max="30"></label>
+                <label>Max mat: <input id="maxMaterias" type="number" value="8" min="1" max="8"></label>
+              </div>
+              <div class="field-row">
+                <label>Hora inicio: <input id="horaInicio" type="time" value="08:00"></label>
+                <label>Hora fin: <input id="horaFin" type="time" value="20:00"></label>
+              </div>
+              <div class="small-box">
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                  <label style="margin:0">Max días: <input id="maxDias" type="number" value="7" min="1" max="7" style="width:84px;margin-left:8px"></label>
+                  <label style="margin:0">Top horarios: <input id="topN" type="number" value="1" min="1" max="3" style="width:56px;margin-left:8px"></label>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center">
+                  <label style="display:flex;align-items:center;gap:6px"><input id="usarCupos" type="checkbox"> Usar cupos</label>
+                  <label style="display:flex;align-items:center;gap:6px"><input id="usarVirtuales" type="checkbox" checked> Usar virtuales</label>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </aside>
+
+      <section class="content">
+        
+        <section id="errors" class="status hidden"></section>
+
+        <div class="sigma-run-layout">
+          <aside class="sigma-side-ad sigma-side-ad-left" aria-label="Publicidad lateral izquierda">
+            <ins class="adsbygoogle sigma-ad sigma-ad-side"
+              style="display:block"
+              data-ad-client="ca-pub-0000000000000000"
+              data-ad-slot="2222222222"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+          </aside>
+          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <button id="runBtn">Generar horario</button>
+          <button id="cancelRunBtn" class="secondary hidden" type="button">Cancelar</button>
+          </div>
+          <aside class="sigma-side-ad sigma-side-ad-right" aria-label="Publicidad lateral derecha">
+            <ins class="adsbygoogle sigma-ad sigma-ad-side"
+              style="display:block"
+              data-ad-client="ca-pub-0000000000000000"
+              data-ad-slot="3333333333"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+          </aside>
+        </div>
+
+        <section id="result" class="result hidden">
+          <div class="schedule-tabs-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="schedule-tabs" id="scheduleTabs" style="flex:1">
+              <button id="addTabBtn" type="button" class="schedule-tab-add" aria-label="Nueva pestaña">+</button>
+            </div>
+            <button id="deleteAllSchedulesBtn" class="secondary" style="white-space:nowrap">Eliminar todos</button>
+          </div>
+          <div id="summary"></div>
+          <div class="result-grid">
+            <div id="schedule" class="panel schedule-panel empty" style="min-height:240px"></div>
+            <div id="selected" class="panel selected-panel"></div>
+          </div>
+          <div class="actions">
+            <button id="downloadBtn" class="hidden">Descargar imagen</button>
+            <button id="downloadExcelBtn" class="hidden">Descargar Excel</button>
+          </div>
+        </section>
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-copy">© 2026 Miguel Angel Villarraga Franco</div>
+      <div class="footer-socials">
+        <a href="mailto:miguerraga10@gmail.com" class="icon-btn mail" aria-label="Correo">✉</a>
+        <a href="https://www.linkedin.com/in/miguel-angel-villarraga-franco/" target="_blank" rel="noopener" class="icon-btn linkedin" aria-label="LinkedIn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.3 2.4-2.6 4.9-2.6 5.2 0 6.1 3.4 6.1 7.8V24h-5V15.1c0-2.2-.04-5-3-5-3 0-3.5 2.3-3.5 4.8V24h-5V8z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/miguerraga10/" target="_blank" rel="noopener" class="icon-btn instagram" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm10 2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h10zm-5 3.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm4.8-3.3a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+        </a>
+        <a href="https://x.com/miguerraga10" target="_blank" rel="noopener" class="icon-btn" aria-label="X">X</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    (function(){
+      function ensureAppLoaded(){
+        if (window.processTextHandler) return;
+        var s = document.createElement('script');
+        s.type = 'module';
+        s.src = 'app.js?fallback=' + Date.now();
+        s.onload = function(){ console.log('app.js fallback loaded'); };
+        s.onerror = function(){ console.error('app.js fallback failed'); };
+        document.body.appendChild(s);
+      }
+      window.addEventListener('DOMContentLoaded', function(){
+        setTimeout(ensureAppLoaded, 0);
+      });
+    })();
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var toggle = document.getElementById("nav-toggle");
+      var links = document.getElementById("nav-links");
+      if (toggle && links) {
+        toggle.addEventListener("click", function () {
+          links.classList.toggle("open");
+        });
+      }
+
+      document.querySelectorAll('.adsbygoogle').forEach(function () {
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      });
+    });
+  </script>
+</body>
+</html>

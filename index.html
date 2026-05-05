@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portafolio — Miguel</title>
+  <link rel="icon" type="image/png" href="assets/M10.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="index.html"><img src="assets/M10.png" alt="M10 logo" class="brand-logo"> Miguel Angel Villarraga Franco</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú">☰</button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="about.html">Quién soy</a></li>
+        <li><a href="courses.html">Cursos</a></li>
+        <li><a href="projects.html">Proyectos</a></li>
+        <li><a href="ganar-dinero.html">Ganar dinero</a></li>
+        <li><a href="Sigma-planner-web/sigma.html" class="nav-sigma">Horarios SIA</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div id="featured-carousel" class="carousel-section"></div>
+
+  <section class="hero container">
+    <img src="assets/miguel-photo.png" alt="Foto de Miguel" class="profile-img">
+    <h1>Miguel Angel Villarraga Franco</h1>
+    <p class="lead">Perfil: Estudiante con mentalidad analítica, disciplinado y orientado a la mejora continua. Me enfoco en aplicar fundamentos teóricos a soluciones prácticas en programación, modelación y optimización.</p>
+    <div class="hero-meta" style="margin-top:1rem;color:var(--muted)">
+      <strong>Formación:</strong>
+      <ul style="margin:.4rem 0 0;padding-left:1rem;color:var(--muted)">
+        <li>Economía — Universidad de Antioquia (5° semestre)</li>
+        <li>Ingeniería de Sistemas e Informática — Universidad Nacional de Colombia (7° semestre)</li>
+        <li>Técnico en Desarrollo de Software — SENA (2020–2022)</li>
+      </ul>
+    </div>
+    <div class="hero-cta">
+      <a class="btn" href="projects.html">Proyectos</a>
+      <a class="btn ghost" href="courses.html">Cursos</a>
+    </div>
+  </section>
+
+  <main>
+    <section id="about" class="section container">
+      <h2>Quién soy</h2>
+      <div class="about-grid">
+        <div>
+          <p>Me defino como una persona analítica y reflexiva, con inclinación natural hacia comprender el porqué de las cosas. Asumo los desafíos con disciplina y constancia, manteniendo una actitud crítica que me permite cuestionar, ajustar y mejorar continuamente.</p>
+        </div>
+        <div class="skills">
+          <h3>Habilidades</h3>
+          <ul>
+            <li>HTML • CSS • JavaScript</li>
+            <li>UI/UX, prototipado</li>
+            <li>React (básico), accesibilidad</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="courses" class="section container">
+      <h2>Cursos</h2>
+      <p class="muted">Catálogo de cursos y recursos — encuentra material ordenado por tema.</p>
+      <div id="courses-list" class="cards-grid"></div>
+    </section>
+
+    <section id="projects" class="section container">
+      <h2>Proyectos</h2>
+      <p class="muted">Selección de proyectos con demos y repositorios.</p>
+      <div id="projects-list" class="cards-grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-copy">© 2026 Miguel Angel Villarraga Franco</div>
+      <div class="footer-socials">
+        <a href="mailto:miguerraga10@gmail.com" class="icon-btn mail" aria-label="Correo">✉</a>
+        <a href="https://www.linkedin.com/in/miguel-angel-villarraga-franco/" target="_blank" rel="noopener" class="icon-btn linkedin" aria-label="LinkedIn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM0 8h5v16H0V8zm7.5 0h4.8v2.2h.1c.7-1.3 2.4-2.6 4.9-2.6 5.2 0 6.1 3.4 6.1 7.8V24h-5V15.1c0-2.2-.04-5-3-5-3 0-3.5 2.3-3.5 4.8V24h-5V8z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/miguerraga10/" target="_blank" rel="noopener" class="icon-btn instagram" aria-label="Instagram">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 2C4.243 2 2 4.243 2 7v10c0 2.757 2.243 5 5 5h10c2.757 0 5-2.243 5-5V7c0-2.757-2.243-5-5-5H7zm10 2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h10zm-5 3.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm4.8-3.3a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+        </a>
+        <a href="https://x.com/miguerraga10" target="_blank" rel="noopener" class="icon-btn" aria-label="X">X</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal plantilla -->
+  <div id="modal" class="modal hidden" role="dialog" aria-hidden="true">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close" aria-label="Cerrar">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="js/data.js?v=20260310-3"></script>
+  <script src="js/app.js?v=20260310-3"></script>
+</body>
+</html>

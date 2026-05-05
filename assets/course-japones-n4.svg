@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Curso japones N4</title>
+  <desc id="d">Ilustracion japonesa con faroles, ola estilizada y abanico.</desc>
+  <rect width="800" height="500" fill="#070910"/>
+
+  <circle cx="150" cy="110" r="120" fill="#2b8bff" opacity="0.22"/>
+  <circle cx="650" cy="360" r="150" fill="#ff244d" opacity="0.2"/>
+
+  <path d="M70 335C140 290 205 295 280 338C355 381 430 385 500 338C570 291 640 292 730 335" fill="none" stroke="#9fd1ff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M70 382C150 340 230 345 315 382C400 419 485 420 570 382C655 344 710 345 760 370" fill="none" stroke="#ff89a8" stroke-width="7" stroke-linecap="round" opacity="0.95"/>
+
+  <g>
+    <rect x="230" y="120" width="56" height="104" rx="20" fill="#ffd4df"/>
+    <path d="M230 150H286M230 182H286" stroke="#ff7f9f" stroke-width="4" opacity="0.8"/>
+    <rect x="252" y="102" width="12" height="18" rx="4" fill="#ffe7ef"/>
+  </g>
+
+  <g>
+    <rect x="470" y="145" width="62" height="112" rx="22" fill="#cfe8ff"/>
+    <path d="M470 178H532M470 212H532" stroke="#78b8ff" stroke-width="4" opacity="0.85"/>
+    <rect x="494" y="126" width="14" height="19" rx="4" fill="#e9f5ff"/>
+  </g>
+
+  <path d="M570 270Q655 180 740 270L570 270Z" fill="#ff6b92" opacity="0.9"/>
+  <path d="M570 270Q655 205 740 270" stroke="#ffdbe6" stroke-width="4" fill="none"/>
+
+  <g fill="#f3f9ff" opacity="0.9" font-family="'Noto Sans JP', 'Yu Gothic', sans-serif" font-size="44" font-weight="700">
+    <text x="115" y="95">日</text>
+    <text x="165" y="95">本</text>
+    <text x="215" y="95">語</text>
+  </g>
+
+  <g fill="#ffd5e0" opacity="0.9" font-family="'Noto Sans JP', 'Yu Gothic', sans-serif" font-size="38" font-weight="700">
+    <text x="602" y="435">学</text>
+    <text x="642" y="435">習</text>
+  </g>
+
+  <g opacity="0.94">
+    <rect x="86" y="405" width="74" height="48" rx="8" fill="#d9ecff"/>
+    <rect x="166" y="405" width="74" height="48" rx="8" fill="#ffdce7"/>
+    <rect x="246" y="405" width="74" height="48" rx="8" fill="#e8f6ff"/>
+    <path d="M102 420h42M102 434h34" stroke="#6fb1ed" stroke-width="4" stroke-linecap="round"/>
+    <path d="M182 420h42M182 434h30" stroke="#ee7e9f" stroke-width="4" stroke-linecap="round"/>
+    <path d="M262 420h42M262 434h32" stroke="#5f9de3" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <g fill="none" stroke="#ffd8e4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M520 96l8 14 16 2-12 10 3 16-15-8-15 8 3-16-12-10 16-2z"/>
+    <path d="M558 92l6 10 12 2-9 8 2 12-11-6-11 6 2-12-9-8 12-2z"/>
+  </g>
+
+  <g fill="#f1f8ff" opacity="0.88" font-family="'Noto Sans JP', 'Yu Gothic', sans-serif" font-size="30" font-weight="700">
+    <text x="350" y="86">文</text>
+    <text x="386" y="86">法</text>
+    <text x="422" y="86">読</text>
+    <text x="458" y="86">解</text>
+  </g>
+</svg>

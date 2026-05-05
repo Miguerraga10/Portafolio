@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Catalogo de Idiomas</title>
+  <desc id="desc">Ilustracion abstracta con globo y elementos de lenguaje en tonos azul y rojo.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#05070d"/>
+      <stop offset="100%" stop-color="#0f1628"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="210" cy="230" r="140" fill="#1a5fff" opacity="0.92"/>
+  <circle cx="580" cy="220" r="150" fill="#ff174b" opacity="0.88"/>
+  <circle cx="400" cy="250" r="170" fill="#0b0f1a" stroke="#73c4ff" stroke-width="5"/>
+  <path d="M300 250h200M400 150v200M332 192h136M332 308h136" stroke="#73c4ff" stroke-width="4" opacity="0.75"/>
+  <g fill="#f6fbff" font-size="48" font-family="Segoe UI, Arial, sans-serif" font-weight="700">
+    <text x="105" y="120">Hola</text>
+    <text x="565" y="120">Hello</text>
+    <text x="104" y="420">Ciao</text>
+    <text x="500" y="420">こんにちは</text>
+  </g>
+</svg>
