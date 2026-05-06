@@ -1,0 +1,14 @@
+{
+  "name": "portafolio",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "check:functions": "node --check netlify/functions/materias.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.16.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^22.3.1"
+  }
+}
