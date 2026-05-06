@@ -44,7 +44,23 @@ async function fetchMateriasFromApi({fuente, universidad, sede, facultad, carrer
   };
   console.warn('[fetchMateriasFromApi] request', { url, fuente, universidad: body.universidad, sede: body.sede, facultad: body.facultad, carrera, aprobadas: (aprobadas || []).length, historialLen: String(historial || '').length });
   const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    let errorMessage = `HTTP ${res.status}`;
+    try {
+      const errorBody = await res.json();
+      if (errorBody && typeof errorBody.error === 'string' && errorBody.error.trim()) {
+        errorMessage = errorBody.error.trim();
+      }
+    } catch (_error) {
+      try {
+        const errorText = await res.text();
+        if (errorText && errorText.trim()) {
+          errorMessage = errorText.trim();
+        }
+      } catch (_textError) {}
+    }
+    throw new Error(errorMessage);
+  }
   const data = await res.json();
   console.warn('[fetchMateriasFromApi] response', { fuente, universidad: body.universidad, sede: body.sede, facultad: body.facultad, carrera, total: Array.isArray(data) ? data.length : -1 });
   return { data, fromCache: false };
