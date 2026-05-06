@@ -623,6 +623,10 @@ function renderLoadedMateriasCommon(){
       e.stopPropagation();
       const key = getMateriaKey(m);
       window.__lastLoaded = (window.__lastLoaded||[]).filter(x=> getMateriaKey(x) !== key);
+      window.__lastLoadedFiltered = (window.__lastLoadedFiltered||[]).filter(x=> getMateriaKey(x) !== key);
+      if (window.__currentScheduleSelections && window.__currentScheduleSelections[m.nombre]){
+        delete window.__currentScheduleSelections[m.nombre];
+      }
       updateScheduleWithNewSelection();
       if (window.__manualCache && window.__manualCache.length){
         const updatedManual = window.__manualCache.filter(x=> getMateriaKey(x) !== key);
@@ -803,6 +807,12 @@ function renderLoadedMateriasCommon(){
       e.stopPropagation();
       const sectionKeys = new Set(section.items.map(item => getMateriaKey(item)));
       window.__lastLoaded = (window.__lastLoaded || []).filter(item => !sectionKeys.has(getMateriaKey(item)));
+      window.__lastLoadedFiltered = (window.__lastLoadedFiltered || []).filter(item => !sectionKeys.has(getMateriaKey(item)));
+      for (const item of section.items) {
+        if (window.__currentScheduleSelections && window.__currentScheduleSelections[item.nombre]) {
+          delete window.__currentScheduleSelections[item.nombre];
+        }
+      }
       updateScheduleWithNewSelection();
       if (window.__manualCache && window.__manualCache.length){
         const updatedManual = window.__manualCache.filter(item => !sectionKeys.has(getMateriaKey(item)));
@@ -1849,6 +1859,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   clearAllBtn?.addEventListener('click', ()=>{
     window.__lastLoaded = [];
     window.__lastLoadedFiltered = [];
+    window.__currentScheduleSelections = {};
     window.__manualCache = [];
     window.__hasManualCache = false;
     window.__excludedGrupos = {};
@@ -1903,15 +1914,16 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
   window.processTextHandler = processTextHandler;
   try{
-    let debounce = null;
-    const runDebounced = ()=>{
-      clearTimeout(debounce);
-      debounce = setTimeout(()=>{ processTextHandler(); }, 300);
-    };
+    if (processTextBtn){
+      processTextBtn.addEventListener('click', ()=>{ processTextHandler(); });
+    }
     if (materiasTextInput){
-      materiasTextInput.addEventListener('input', runDebounced);
-      materiasTextInput.addEventListener('paste', runDebounced);
-      materiasTextInput.addEventListener('change', runDebounced);
+      materiasTextInput.addEventListener('keydown', (event)=>{
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter'){
+          event.preventDefault();
+          processTextHandler();
+        }
+      });
     }
   }catch(e){ console.warn('auto process text handler failed', e); }
 
@@ -2538,6 +2550,7 @@ async function loadRepoFromRepo(){
       localStorage.setItem('historial_aprobadas', JSON.stringify(aprobadas));
       histResult.classList.remove('hidden'); histResult.textContent = `Aprobadas extraídas: ${aprobadas.length}`;
       window.__historialAprobadas = aprobadas;
+      historialText.value = '';
       statusEl.textContent = `Historial procesado. Materias aprobadas: ${aprobadas.length}`;
     }, 500);
   });
