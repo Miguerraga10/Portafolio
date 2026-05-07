@@ -327,6 +327,8 @@ export function estimarComplejidadSeleccionJS(materias, opts, cancelToken){
 
 export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelToken){
   // Implementación alineada con Main.py
+  const BRUTE_FORCE_LIMIT = 20000000;
+  const HEURISTIC_BEAM_WIDTH = 160;
   const progressCallback = typeof onProgress === 'function' ? onProgress : null;
   const YIELD_INTERVAL = 200;
   const runStartedAt = nowMs();
@@ -361,6 +363,18 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
       exact: false,
       message: payload.message || 'Preparando horario...',
       timings: { ...timings, totalMs: nowMs() - runStartedAt }
+    });
+  }
+
+  function reportHeuristicProgress(message){
+    reportProgress({
+      phase: 'running',
+      analyzed: 0,
+      total: 0,
+      percent: 0,
+      exact: false,
+      message,
+      timings: { ...timings, totalMs: nowMs() - runStartedAt, algorithmMode: 'heuristic' }
     });
   }
 
@@ -405,6 +419,108 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
     }
   }
 
+  function resultSortComparator(a, b){
+    if (b.total_materias !== a.total_materias) return b.total_materias - a.total_materias;
+    if (b.creditos !== a.creditos) return b.creditos - a.creditos;
+    if (a.dias_ocupados !== b.dias_ocupados) return a.dias_ocupados - b.dias_ocupados;
+    return a.huecos - b.huecos;
+  }
+
+  function combKey(comb){
+    return comb.map(g=>`${g.materiaNombre||''}::${g.grupo||''}`).sort().join('|');
+  }
+
+  function insertTopResult(result){
+    const key = combKey(result.comb);
+    if (topResults.some(r => combKey(r.comb) === key)) return;
+    topResults.push(result);
+    topResults.sort(resultSortComparator);
+    if (topResults.length > topN) topResults.pop();
+  }
+
+  function summarizeCombination(combinacion_final){
+    const horario = new SchedulerHorario();
+    for (const grupo of combinacion_final){
+      if (!horario.verificar_grupo(grupo)) return null;
+      horario.agregar_grupo(grupo);
+    }
+    const creditos_asignados = combinacion_final.reduce((s,g)=> s + (g.creditos||0), 0);
+    if (creditos_asignados > opts.maxcreditos) return null;
+    const dias_ocupados = Object.keys(horario.dias).filter(d=> Object.keys(horario.dias[d]).length>0).length;
+    if (dias_ocupados > opts.maxdias) return null;
+    const huecos = horario.contar_huecos();
+    return {
+      horarioMap: horario,
+      materias: combinacion_final.map(g=> ({ nombre: (g.horarios && g.horarios[0]) ? g.horarios[0].nombre : '(sin horario)', grupo: g.grupo })),
+      comb: combinacion_final,
+      total_materias: combinacion_final.length,
+      creditos: creditos_asignados,
+      dias_ocupados,
+      huecos
+    };
+  }
+
+  function beamScore(state){
+    return (state.total_materias * 100000) + (state.creditos * 1000) - (state.dias_ocupados * 100) - (state.huecos * 10);
+  }
+
+  async function runHeuristicSearch(requiredCombinations, optionalSubjects){
+    const initialBeam = [];
+    let processedRequired = 0;
+    for (const combOb of requiredCombinations){
+      throwIfCancelled(cancelToken);
+      processedRequired += 1;
+      const summary = summarizeCombination(combOb);
+      if (!summary) continue;
+      initialBeam.push(summary);
+      insertTopResult(summary);
+      if (processedRequired === 1 || processedRequired % YIELD_INTERVAL === 0 || processedRequired === requiredCombinations.length){
+        reportHeuristicProgress(`Heurística: base obligatoria ${processedRequired}/${requiredCombinations.length}...`);
+        await maybeYield(processedRequired, { phase: 'running', message: `Heurística: base obligatoria ${processedRequired}/${requiredCombinations.length}...` });
+      }
+    }
+    if (!initialBeam.length) return;
+
+    let beam = initialBeam
+      .sort((left, right) => beamScore(right) - beamScore(left))
+      .slice(0, HEURISTIC_BEAM_WIDTH);
+
+    const sortedOptionals = optionalSubjects.slice().sort((left, right) => {
+      const leftBest = Math.max(...left.grupos.map(g => g.creditos || left.creditos || 0), 0);
+      const rightBest = Math.max(...right.grupos.map(g => g.creditos || right.creditos || 0), 0);
+      if (rightBest !== leftBest) return rightBest - leftBest;
+      return left.nombre.localeCompare(right.nombre, 'es');
+    });
+
+    let heuristicSteps = 0;
+    for (const materia of sortedOptionals){
+      throwIfCancelled(cancelToken);
+      const nextBeam = [];
+      for (const state of beam){
+        nextBeam.push(state);
+        if (state.total_materias >= opts.maxmaterias) continue;
+        for (const grupo of (materia.grupos || [])){
+          heuristicSteps += 1;
+          const candidate = summarizeCombination(state.comb.concat([grupo]));
+          if (!candidate) continue;
+          nextBeam.push(candidate);
+          insertTopResult(candidate);
+          if (heuristicSteps % YIELD_INTERVAL === 0){
+            reportHeuristicProgress(`Heurística: explorando ${materia.nombre}...`);
+            await maybeYield(heuristicSteps, { phase: 'running', message: `Heurística: explorando ${materia.nombre}...` });
+          }
+        }
+      }
+      beam = nextBeam
+        .sort((left, right) => {
+          const diff = beamScore(right) - beamScore(left);
+          if (diff !== 0) return diff;
+          return resultSortComparator(left, right);
+        })
+        .slice(0, HEURISTIC_BEAM_WIDTH);
+    }
+  }
+
   try{
     reportPreparation({ phase: 'preparing', message: 'Preparando materias...' });
     const state = await buildPreparedSchedulerState(materias, opts, {
@@ -427,22 +543,34 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
     let optionalPrepAccumulatedMs = 0;
     let evaluationAccumulatedMs = 0;
 
-  function combKey(comb){ return comb.map(g=>`${g.materiaNombre||''}::${g.grupo||''}`).sort().join('|'); }
-
-  function insertTopResult(result){
-    const key = combKey(result.comb);
-    if (topResults.some(r => combKey(r.comb) === key)) return; // duplicado
-    topResults.push(result);
-    topResults.sort((a,b)=>{
-      if (b.total_materias !== a.total_materias) return b.total_materias - a.total_materias;
-      if (b.creditos !== a.creditos) return b.creditos - a.creditos;
-      if (a.dias_ocupados !== b.dias_ocupados) return a.dias_ocupados - b.dias_ocupados;
-      return a.huecos - b.huecos;
-    });
-    if (topResults.length > topN) topResults.pop();
-  }
-
     const maxOptStart = Math.min(materias_optativas.length, opts.maxmaterias - materias_obligatorias.length);
+    const estimatedFinalCombinationSpace = (()=>{
+      const optionalValues = materias_optativas.map(m => Math.max(0, m.grupos.length));
+      let total = 0;
+      for (let r = 0; r <= maxOptStart; r++) total += symmetricCombinationSum(optionalValues, r);
+      return combinaciones_obligatorias_viables.length * total;
+    })();
+    const useHeuristic = !opts.forceBrute && estimatedFinalCombinationSpace > BRUTE_FORCE_LIMIT;
+    timings.algorithmMode = useHeuristic ? 'heuristic' : 'exact';
+
+    if (useHeuristic){
+      reportHeuristicProgress(`Heurística activada: espacio estimado ${estimatedFinalCombinationSpace}.`);
+      await runHeuristicSearch(combinaciones_obligatorias_viables, materias_optativas);
+      timings.optionalPrepMs = nowMs() - optionalPrepStartedAt;
+      timings.evaluationMs = 0;
+      timings.totalMs = nowMs() - runStartedAt;
+      reportProgress({
+        phase: 'done',
+        analyzed: 0,
+        total: 0,
+        percent: 100,
+        exact: false,
+        message: topResults.length ? 'Analisis heurístico completado.' : 'Analisis heurístico completado sin horario viable.',
+        timings: { ...timings }
+      });
+      return topResults.length ? serializeTopResults() : null;
+    }
+
     const optionalPlans = [];
     const optValues = materias_optativas.map(m => Math.max(0, m.grupos.length));
     const requiredCombinationUnits = productCardinality(materias_obligatorias.map(m => Math.max(0, m.grupos.length)));

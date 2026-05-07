@@ -3,7 +3,6 @@
 
 // Cargaremos el scheduler dinámicamente para capturar y mostrar errores de carga
 let generarHorarioOptimoJS = null;
-const MAX_SELECTED_FOR_ANALYSIS = 15;
 
 const API_BASE = (localStorage.getItem('api_base') || window.location.origin).replace(/\/$/, '');
 
@@ -29,6 +28,13 @@ function fuenteToUniversidad(fuente){
   if (key === 'unal') return 'UNAL';
   if (key === 'udea') return 'UdeA';
   return '';
+}
+
+function normalizeFuenteKey(value){
+  const key = String(value || '').trim().toLowerCase();
+  if (key === 'universidad nacional' || key === 'unal') return 'unal';
+  if (key === 'universidad de antioquia' || key === 'udea') return 'udea';
+  return key;
 }
 
 async function fetchMateriasFromApi({fuente, universidad, sede, facultad, carrera, aprobadas, historial}){
@@ -306,13 +312,15 @@ async function processTextHandlerGlobal(){
   }
   let materias = [];
   if (parsed){
-    if (Array.isArray(parsed)) materias = mapRepoMaterias(parsed);
-    else if (parsed.materias && Array.isArray(parsed.materias)) materias = mapRepoMaterias(parsed.materias);
+    const mapOptions = { fuente: normalizeFuenteKey(uni) };
+    if (Array.isArray(parsed)) materias = mapRepoMaterias(parsed, mapOptions);
+    else if (parsed.materias && Array.isArray(parsed.materias)) materias = mapRepoMaterias(parsed.materias, mapOptions);
     else {
     const arr = Object.values(parsed).find(v=> Array.isArray(v) && v.length && typeof v[0] === 'object');
-    if (arr) materias = mapRepoMaterias(arr);
-    else materias = mapRepoMaterias([parsed]);
+    if (arr) materias = mapRepoMaterias(arr, mapOptions);
+    else materias = mapRepoMaterias([parsed], mapOptions);
     }
+    applyDefaultExcludedGroupsForFuente(materias, mapOptions.fuente);
   } else {
     let uniKey = (uni||'').toString();
     if (uniKey.toLowerCase() === 'unal') uniKey = 'UNAL';
@@ -320,7 +328,11 @@ async function processTextHandlerGlobal(){
     let materiasPlain = [];
     try{ materiasPlain = parsePlainTextMaterias(raw, uniKey); }
     catch(e){ console.error('parsePlainTextMaterias threw', e); materiasPlain = []; }
-    if (materiasPlain && materiasPlain.length){ materias = mapRepoMaterias(materiasPlain); }
+    if (materiasPlain && materiasPlain.length){
+      const sourceKey = normalizeFuenteKey(uniKey);
+      materias = mapRepoMaterias(materiasPlain, { fuente: sourceKey });
+      applyDefaultExcludedGroupsForFuente(materias, sourceKey);
+    }
     else {
     if (errorsEl){ errorsEl.classList.remove('hidden'); errorsEl.classList.add('error'); errorsEl.textContent = 'No se extrajeron materias del texto pegado. Asegúrate de seleccionar la universidad correcta y pegar el bloque de la materia completo.'; }
     throw new Error('No se pudo parsear el texto como JSON ni como texto plano reconocido.');
@@ -363,6 +375,45 @@ function toggleGrupoExcluded(materiaNombre, grupoKey){
   const s=window.__excludedGrupos[materiaNombre];
   if(s.has(grupoKey)) s.delete(grupoKey); else s.add(grupoKey);
   saveExcludedGruposCache();
+}
+
+function resetCompactMateriaView(){
+  window.__expandedMaterias = new Set();
+  window.__expandedSelected = new Set();
+  window.__resetCollapsedMateriaFolders = true;
+}
+
+function getDefaultUnalExcludedGroupKeys(materia){
+  const grupos = Array.isArray(materia && materia.grupos) ? materia.grupos : [];
+  const cutoffIndex = grupos.findIndex(grupo => {
+    const digits = String(grupo && grupo.grupo ? grupo.grupo : '').match(/\d+/);
+    return !!(digits && digits[0] && digits[0].startsWith('0'));
+  });
+  if (cutoffIndex === -1) return [];
+  return grupos.slice(cutoffIndex).map(grupo => grupo && grupo.grupo).filter(Boolean);
+}
+
+function applyDefaultExcludedGroupsForFuente(materias, fuente){
+  if (normalizeFuenteKey(fuente) !== 'unal') return;
+  if (!window.__excludedGrupos) window.__excludedGrupos = loadExcludedGruposCache();
+  let changed = false;
+  for (const materia of (materias || [])){
+    if (!materia || !materia.nombre) continue;
+    const defaultExcluded = getDefaultUnalExcludedGroupKeys(materia);
+    if (!defaultExcluded.length) continue;
+    if (!window.__excludedGrupos[materia.nombre]) window.__excludedGrupos[materia.nombre] = new Set();
+    const excludedSet = window.__excludedGrupos[materia.nombre];
+    for (const grupoKey of defaultExcluded){
+      if (!excludedSet.has(grupoKey)){
+        excludedSet.add(grupoKey);
+        changed = true;
+      }
+      if (window.__currentScheduleSelections && window.__currentScheduleSelections[materia.nombre] === grupoKey){
+        delete window.__currentScheduleSelections[materia.nombre];
+      }
+    }
+  }
+  if (changed) saveExcludedGruposCache();
 }
 
 function computeOccupiedSlots(groupObjects){
@@ -509,24 +560,15 @@ function syncQuickMateriaSelection(items, options = {}){
     return { changed, limited: false };
   }
 
-  let limited = false;
   for (const item of items || []){
     const key = getMateriaKey(item);
     if (byKey.has(key)) continue;
-    if (byKey.size >= MAX_SELECTED_FOR_ANALYSIS){
-      limited = true;
-      break;
-    }
     byKey.set(key, item);
     changed = true;
   }
 
   window.__lastLoadedFiltered = Array.from(byKey.values());
-  if (limited){
-    if (statusEl) statusEl.textContent = `Puedes seleccionar máximo ${MAX_SELECTED_FOR_ANALYSIS} materias para analizar.`;
-    showError('Límite de materias alcanzado', new Error(`Solo se marcaron algunas de ${label} porque el máximo es ${MAX_SELECTED_FOR_ANALYSIS}.`));
-  }
-  return { changed, limited };
+  return { changed, limited: false };
 }
 
 function renderLoadedMateriasCommon(){
@@ -536,8 +578,8 @@ function renderLoadedMateriasCommon(){
   const list = window.__lastLoaded || [];
   const selectedCount = Array.isArray(window.__lastLoadedFiltered) ? window.__lastLoadedFiltered.length : 0;
   if (selectedAnalysisCountEl){
-    selectedAnalysisCountEl.textContent = `${selectedCount}/${MAX_SELECTED_FOR_ANALYSIS} seleccionadas`;
-    selectedAnalysisCountEl.classList.toggle('is-limit', selectedCount >= MAX_SELECTED_FOR_ANALYSIS);
+    selectedAnalysisCountEl.textContent = `${selectedCount} seleccionadas`;
+    selectedAnalysisCountEl.classList.remove('is-limit');
   }
   if (!list || list.length===0){ loadedEl.innerHTML = '<div class="muted">No hay materias cargadas.</div>'; return; }
   if (!window.__lastLoadedFiltered) window.__lastLoadedFiltered = [];
@@ -578,12 +620,6 @@ function renderLoadedMateriasCommon(){
       clearSchedulerMessage();
       const willCheck = !cb.classList.contains('checked');
       if (willCheck){
-        const selectedCount = (window.__lastLoadedFiltered||[]).length;
-        if (selectedCount >= MAX_SELECTED_FOR_ANALYSIS){
-          if (statusEl) statusEl.textContent = `Puedes seleccionar máximo ${MAX_SELECTED_FOR_ANALYSIS} materias para analizar.`;
-          showError('Límite de materias alcanzado', new Error(`Máximo ${MAX_SELECTED_FOR_ANALYSIS} materias seleccionadas.`));
-          return;
-        }
         if (!(window.__lastLoadedFiltered||[]).some(x=> x.nombre===nombre)){
           window.__lastLoadedFiltered = (window.__lastLoadedFiltered||[]).concat([item]);
         }
@@ -766,7 +802,10 @@ function renderLoadedMateriasCommon(){
     })
     .map(([title, items]) => ({ title, items }));
 
-  if (!window.__collapsedMateriaFolders) window.__collapsedMateriaFolders = new Set();
+  if (!window.__collapsedMateriaFolders || window.__resetCollapsedMateriaFolders){
+    window.__collapsedMateriaFolders = new Set(groupedSections.map(section => section.title));
+    window.__resetCollapsedMateriaFolders = false;
+  }
 
   for (const section of groupedSections){
     const folder = document.createElement('section');
@@ -859,8 +898,12 @@ function renderLoadedMateriasCommon(){
 }
 
 function getMateriaKey(m){
+  const codigo = (m && m.codigo) ? String(m.codigo).trim().toLowerCase() : '';
   const nombre = (m && m.nombre) ? String(m.nombre).trim().toLowerCase() : '';
   const grupos = Array.isArray(m && m.grupos) ? m.grupos.length : 0;
+  if (codigo) {
+    return `${codigo}::${nombre}::${grupos}`;
+  }
   return `${nombre}::${grupos}`;
 }
 
@@ -965,6 +1008,9 @@ try{
 try{ window.__excludedGrupos = loadExcludedGruposCache(); }catch(_){ window.__excludedGrupos = {}; }
 
 async function generarHorariosJS(materias, opts){
+  const BRUTE_FORCE_LIMIT = 20000000;
+  const HEURISTIC_BEAM_WIDTH = 160;
+  const startedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   // Implementación equivalente a Python: prefiltrar, asignar obligatorias únicas, generar combinaciones viables y paralelizar evaluación
   const materiasC = materias.map((m,mi)=> ({...m, __id: mi, grupos: (m.grupos||[]).map((g,gi)=> ({...g, __id:`${mi}-${gi}`, materiaNombre: m.nombre })) }));
   // Filtrar grupos según cupos, virtuales y existencia de horarios
@@ -1026,6 +1072,175 @@ async function generarHorariosJS(materias, opts){
     }
   }
 
+  function contarDiasOcupadosFromHorario(horario){
+    return Object.values(horario.dias || {}).filter(day => Object.keys(day || {}).length > 0).length;
+  }
+
+  function buildHorarioMapFromHorario(horario){
+    const out = {};
+    for (const [dia, horas] of Object.entries(horario.dias || {})) out[dia] = {...horas};
+    return out;
+  }
+
+  function summarizeComb(comb){
+    const horario = new HorarioJS();
+    let totalCreditos = 0;
+    for (const grupo of (comb || [])){
+      if (!horario.agregar_grupo(grupo)) return null;
+      totalCreditos += grupo.creditos || 0;
+    }
+    return {
+      comb,
+      horario,
+      horarioMap: buildHorarioMapFromHorario(horario),
+      total_materias: (comb || []).length,
+      creditos: totalCreditos,
+      dias_ocup: contarDiasOcupadosFromHorario(horario),
+      huecos: horario.contar_huecos(),
+      sel: Array.from(new Set((comb || []).map(grupo => grupo.materiaNombre))).filter(Boolean)
+    };
+  }
+
+  function isBetterSummary(candidate, best){
+    if (!candidate) return false;
+    if (!best) return true;
+    if (candidate.total_materias !== best.total_materias) return candidate.total_materias > best.total_materias;
+    if (candidate.creditos !== best.creditos) return candidate.creditos > best.creditos;
+    if (candidate.dias_ocup !== best.dias_ocup) return candidate.dias_ocup < best.dias_ocup;
+    return candidate.huecos < best.huecos;
+  }
+
+  function scorePartialState(state){
+    return (state.creditos * 1000) - (state.dias_ocup * 100) - (state.huecos * 10) - state.grupos.length;
+  }
+
+  function estimateOptionalCombinationCount(materiasOptativasSeleccionadas){
+    if (!materiasOptativasSeleccionadas || !materiasOptativasSeleccionadas.length) return 1;
+    let total = 1;
+    for (const materia of materiasOptativasSeleccionadas){
+      const gruposCount = Array.isArray(materia.grupos) ? materia.grupos.length : 0;
+      if (gruposCount === 0) return 0;
+      total *= gruposCount;
+      if (total > BRUTE_FORCE_LIMIT) return total;
+    }
+    return total;
+  }
+
+  function estimateTotalCombinationCount(requiredCount, optionalSets){
+    if (!requiredCount || !optionalSets || !optionalSets.length) return requiredCount || 0;
+    let total = 0;
+    for (const set of optionalSets){
+      total += requiredCount * estimateOptionalCombinationCount(set);
+      if (total > BRUTE_FORCE_LIMIT) return total;
+    }
+    return total;
+  }
+
+  async function evaluateExactCombos(allCombinaciones){
+    if (!allCombinaciones.length) return { best: null };
+    const concurrency = navigator.hardwareConcurrency || 2;
+    const chunks = Array.from({length:concurrency}, (_,i)=> allCombinaciones.filter((_,idx)=> idx%concurrency===i));
+    const workerPromises = chunks.map((chunk,i)=> new Promise((res,rej)=>{
+      if (chunk.length===0) return res(null);
+      const w = new Worker('worker.js');
+      w.onmessage = ev=>{ res(ev.data); w.terminate(); };
+      w.onerror = e=>{ w.terminate(); rej(e); };
+      w.postMessage({chunk, opts, workerIndex: i});
+    }));
+    const results = await Promise.all(workerPromises);
+    const statsAgg = { evaluated:0, skipped_conflict:0, skipped_creditos:0, skipped_dias:0 };
+    const diagnostics = [];
+    let best = null;
+    for (const r of results){
+      if (!r) continue;
+      if (r.error){
+        diagnostics.push(r);
+        if (r.stats) Object.keys(statsAgg).forEach(k=> statsAgg[k]+= (r.stats[k]||0));
+        continue;
+      }
+      const resr = r.result || r;
+      if (r.stats) Object.keys(statsAgg).forEach(k=> statsAgg[k]+= (r.stats[k]||0));
+      if (isBetterSummary(resr, best)) best = resr;
+    }
+    return { best, diagnostics, statsAgg };
+  }
+
+  function runHeuristicSearch(requiredCombos, optionalSubjects, targetOptionalCount){
+    const states = [];
+    for (const required of requiredCombos){
+      const summary = summarizeComb(required);
+      if (!summary) continue;
+      states.push({
+        horario: summary.horario,
+        grupos: required.slice(),
+        selectedMaterias: new Set(summary.sel),
+        creditos: summary.creditos,
+        dias_ocup: summary.dias_ocup,
+        huecos: summary.huecos
+      });
+    }
+    if (!states.length) return null;
+    let beam = states
+      .sort((left, right) => scorePartialState(right) - scorePartialState(left))
+      .slice(0, HEURISTIC_BEAM_WIDTH);
+
+    const rankedOptionals = optionalSubjects
+      .slice()
+      .sort((left, right) => {
+        const leftBest = Math.max(...left.grupos.map(g => g.creditos || left.creditos || 0), 0);
+        const rightBest = Math.max(...right.grupos.map(g => g.creditos || right.creditos || 0), 0);
+        if (leftBest !== rightBest) return rightBest - leftBest;
+        return left.nombre.localeCompare(right.nombre, 'es');
+      })
+      .slice(0, targetOptionalCount);
+
+    for (const materia of rankedOptionals){
+      const nextBeam = [];
+      for (const state of beam){
+        nextBeam.push(state);
+        for (const grupo of (materia.grupos || [])){
+          if (!state.horario.verificar_grupo(grupo)) continue;
+          const horario = new HorarioJS();
+          for (const existing of state.grupos) horario.agregar_grupo(existing);
+          if (!horario.agregar_grupo(grupo)) continue;
+          const selectedMaterias = new Set(state.selectedMaterias);
+          selectedMaterias.add(materia.nombre);
+          nextBeam.push({
+            horario,
+            grupos: state.grupos.concat([grupo]),
+            selectedMaterias,
+            creditos: state.creditos + (grupo.creditos || materia.creditos || 0),
+            dias_ocup: contarDiasOcupadosFromHorario(horario),
+            huecos: horario.contar_huecos()
+          });
+        }
+      }
+      beam = nextBeam
+        .sort((left, right) => {
+          const rank = scorePartialState(right) - scorePartialState(left);
+          if (rank !== 0) return rank;
+          return right.selectedMaterias.size - left.selectedMaterias.size;
+        })
+        .slice(0, HEURISTIC_BEAM_WIDTH);
+    }
+
+    let best = null;
+    for (const state of beam){
+      const summary = {
+        horarioMap: buildHorarioMapFromHorario(state.horario),
+        materias: Array.from(state.selectedMaterias),
+        comb: state.grupos,
+        total_materias: state.selectedMaterias.size,
+        creditos: state.creditos,
+        dias_ocup: state.dias_ocup,
+        huecos: state.huecos,
+        sel: Array.from(state.selectedMaterias)
+      };
+      if (isBetterSummary(summary, best)) best = summary;
+    }
+    return best;
+  }
+
   // Generar combinaciones viables solo con obligatorias (como Python)
   const incompat_cache = new Map();
   let cache_hits=0, cache_misses=0;
@@ -1073,82 +1288,84 @@ async function generarHorariosJS(materias, opts){
   let mejor_comb = null;
   let max_materias = 0, max_creditos = 0, menor_dias_ocupados = Infinity, menor_huecos = Infinity;
   let materias_seleccionadas_final = null;
+  let algorithmMode = 'exact';
 
   const maxOptStart = Math.min(materias_optativas.length, opts.maxmaterias - materias_obligatorias.length);
   for (let numOpt = maxOptStart; numOpt>=0; numOpt--){
-    // crear combinaciones de optativas de tamaño numOpt
+    const elegidoSets = numOpt > 0 ? combinations(materias_optativas, numOpt) : [[]];
+    const estimatedCombinations = estimateTotalCombinationCount(combinaciones_obligatorias_viables.length, elegidoSets);
+    const useHeuristic = !opts.forceBrute && estimatedCombinations > BRUTE_FORCE_LIMIT;
+
+    if (useHeuristic){
+      algorithmMode = 'heuristic';
+      let bestHeuristic = null;
+      for (const set of elegidoSets){
+        const candidate = runHeuristicSearch(combinaciones_obligatorias_viables, set, numOpt);
+        if (isBetterSummary(candidate, bestHeuristic)) bestHeuristic = candidate;
+      }
+      if (bestHeuristic && isBetterSummary(bestHeuristic, { total_materias: max_materias, creditos: max_creditos, dias_ocup: menor_dias_ocupados, huecos: menor_huecos })){
+        max_materias = bestHeuristic.total_materias;
+        max_creditos = bestHeuristic.creditos;
+        menor_dias_ocupados = bestHeuristic.dias_ocup;
+        menor_huecos = bestHeuristic.huecos;
+        materias_seleccionadas_final = bestHeuristic.sel || bestHeuristic.materias;
+        mejor_horario = bestHeuristic.horarioMap;
+        mejor_comb = bestHeuristic.comb;
+      }
+      if (max_materias>0) break;
+      continue;
+    }
+
     let combinaciones_optativas_viables = [[]];
     if (numOpt>0){
-      const elegidoSets = combinations(materias_optativas, numOpt);
       combinaciones_optativas_viables = [];
       for (const set of elegidoSets){
         combinaciones_optativas_viables.push(...producto(set.map(m=> m.grupos)));
       }
     }
 
-    // construir todas las combinaciones finales (producto)
     const all_combinaciones = [];
     for (const a of combinaciones_obligatorias_viables) for (const b of combinaciones_optativas_viables) all_combinaciones.push(a.concat(b));
-
     if (all_combinaciones.length===0) continue;
 
-    // Dividir y enviar a workers
-    const concurrency = navigator.hardwareConcurrency || 2;
-    const chunks = Array.from({length:concurrency}, (_,i)=> all_combinaciones.filter((_,idx)=> idx%concurrency===i));
-    const workerPromises = chunks.map((chunk,i)=> new Promise((res,rej)=>{
-      if (chunk.length===0) return res(null);
-      const w = new Worker('worker.js');
-      w.onmessage = ev=>{ res(ev.data); w.terminate(); };
-      w.onerror = e=>{ w.terminate(); rej(e); };
-      w.postMessage({chunk, opts, workerIndex: i});
-    }));
-
-    const results = await Promise.all(workerPromises);
-    // aggregate stats and show diagnostics
-    const statsAgg = { evaluated:0, skipped_conflict:0, skipped_creditos:0, skipped_dias:0 };
-    const diagnostics = [];
-    for (const r of results){
-      if (!r) continue;
-      if (r.error){
-        diagnostics.push(r);
-        if (r.stats) Object.keys(statsAgg).forEach(k=> statsAgg[k]+= (r.stats[k]||0));
-        continue;
-      }
-      const resr = r.result || r;
-      if (r.stats) Object.keys(statsAgg).forEach(k=> statsAgg[k]+= (r.stats[k]||0));
-      const { total_materias, creditos, dias_ocup, huecos, comb, sel, horarioMap } = resr;
-      let es_mejor=false;
-      if (total_materias>max_materias) es_mejor=true;
-      else if (total_materias==max_materias){
-        if (creditos>max_creditos) es_mejor=true;
-        else if (creditos==max_creditos){
-          if (dias_ocup<menor_dias_ocupados) es_mejor=true;
-          else if (dias_ocup==menor_dias_ocupados && huecos<menor_huecos) es_mejor=true;
-        }
-      }
-      if (es_mejor){
-        max_materias = total_materias; max_creditos = creditos; menor_dias_ocupados = dias_ocup; menor_huecos = huecos;
-        materias_seleccionadas_final = sel; mejor_horario = horarioMap; mejor_comb = comb;
-      }
+    const { best, diagnostics, statsAgg } = await evaluateExactCombos(all_combinaciones);
+    if (best && isBetterSummary(best, { total_materias: max_materias, creditos: max_creditos, dias_ocup: menor_dias_ocupados, huecos: menor_huecos })){
+      max_materias = best.total_materias;
+      max_creditos = best.creditos;
+      menor_dias_ocupados = best.dias_ocup;
+      menor_huecos = best.huecos;
+      materias_seleccionadas_final = best.sel;
+      mejor_horario = best.horarioMap;
+      mejor_comb = best.comb;
     }
 
-    // show diagnostics if any
-    if (diagnostics.length){
+    if (diagnostics && diagnostics.length){
       try{
         errorsEl.classList.remove('hidden'); errorsEl.classList.add('error');
         errorsEl.innerHTML = '<strong>Diagnostics (workers):</strong><ul>' + diagnostics.map(d=>`<li>${d.error}${d.message?': '+d.message:''} — stats: ${JSON.stringify(d.stats||{})}</li>`).join('') + '</ul>';
       }catch(e){ console.warn('Error rendering diagnostics', e); }
       console.warn('Worker diagnostics:', diagnostics, 'aggStats:', statsAgg);
-    } else {
-      // hide errors panel if none
-      if (errorsEl) { errorsEl.classList.add('hidden'); errorsEl.classList.remove('error'); errorsEl.innerHTML = ''; }
+    } else if (errorsEl) {
+      errorsEl.classList.add('hidden'); errorsEl.classList.remove('error'); errorsEl.innerHTML = '';
     }
 
-    if (max_materias>0) break; // si encontramos solución para este numOpt, terminar (igual que Python)
+    if (max_materias>0) break;
   }
 
   if (!mejor_horario) return null;
-  return { horarioMap: mejor_horario, materias: materias_seleccionadas_final, comb: mejor_comb, total_materias: max_materias, creditos: max_creditos };
+  const finishedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  return {
+    horarioMap: mejor_horario,
+    materias: materias_seleccionadas_final,
+    comb: mejor_comb,
+    total_materias: max_materias,
+    creditos: max_creditos,
+    timings: {
+      totalMs: finishedAt - startedAt,
+      algorithmMode,
+      bruteForceLimit: BRUTE_FORCE_LIMIT
+    }
+  };
 }
 
 // UI wiring (initialize after DOM ready to avoid missing elements)
@@ -1253,7 +1470,6 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const materiasFileInput = document.getElementById('materiasFile');
   // loadFileBtn removed from UI
   const materiasTextInput = document.getElementById('materiasText');
-  const processTextBtn = document.getElementById('processTextBtn');
   const universidadSelect = document.getElementById('universidadSelect');
   const sedeSelect = document.getElementById('sedeSelect');
   const facultadSelect = document.getElementById('facultadSelect');
@@ -1270,13 +1486,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const horaFinInput = document.getElementById('horaFin');
   const usarCuposInput = document.getElementById('usarCupos');
   const usarVirtualesInput = document.getElementById('usarVirtuales');
+  const forceBruteInput = document.getElementById('forceBrute');
   const intervalStart = document.getElementById('intervalStart');
   const intervalEnd = document.getElementById('intervalEnd');
   const addIntervalBtn = document.getElementById('addIntervalBtn');
   const intervalList = document.getElementById('intervalList');
 
   const OPTIONS_CACHE_KEY = 'planner_options';
-  const MAX_SCHEDULER_RUN_MS = 20000;
   let estimarComplejidadSeleccionJS = null;
   let currentRunToken = null;
   let lastRunTimings = null;
@@ -1312,12 +1528,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   function syncOptionsFromUi(){
     const maxcreditos = clampInputValue(maxCredInput, 1, 30, 30);
-    const maxmaterias = clampInputValue(maxMateriasInput, 1, 8, 8);
+    const maxmaterias = clampInputValue(maxMateriasInput, 1, 99, 8);
     const maxdias = clampInputValue(maxDiasInput, 1, 7, 3);
     const topN = clampInputValue(topNInput, 1, 3, 1);
     const hora_inicio = normalizeTimeInput(horaInicioInput, '06:00');
     const hora_fin = normalizeTimeInput(horaFinInput, '20:00');
-    const payload = { maxcreditos, maxmaterias, maxdias, topN, hora_inicio, hora_fin };
+    const forceBrute = !!(forceBruteInput && forceBruteInput.checked);
+    const payload = { maxcreditos, maxmaterias, maxdias, topN, hora_inicio, hora_fin, forceBrute };
     saveOptionsCache(payload);
     return payload;
   }
@@ -1388,6 +1605,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   function renderTimingSummary(targetEl, estimate, timings){
     if (!targetEl) return;
     const items = [];
+    if (timings && timings.algorithmMode) items.push(`<b>Algoritmo:</b> ${escapeXml(timings.algorithmMode === 'heuristic' ? 'Heurístico' : 'Fuerza bruta')}`);
     if (estimate && estimate.estimatedSeconds != null) items.push(`<b>Estimado:</b> ${escapeXml(formatDurationMs(estimate.estimatedSeconds * 1000))}`);
     if (timings && timings.filteringMs != null) items.push(`<b>Filtrado:</b> ${escapeXml(formatDurationMs(timings.filteringMs))}`);
     if (timings && timings.requiredMs != null) items.push(`<b>Obligatorias:</b> ${escapeXml(formatDurationMs(timings.requiredMs))}`);
@@ -1412,16 +1630,18 @@ window.addEventListener('DOMContentLoaded', ()=>{
       if (topNInput && cached.topN != null) topNInput.value = cached.topN;
       if (horaInicioInput && cached.hora_inicio) horaInicioInput.value = cached.hora_inicio;
       if (horaFinInput && cached.hora_fin) horaFinInput.value = cached.hora_fin;
+      if (forceBruteInput) forceBruteInput.checked = !!cached.forceBrute;
     } else {
       if (maxDiasInput) maxDiasInput.value = '3';
       if (horaInicioInput) horaInicioInput.value = '06:00';
       if (horaFinInput) horaFinInput.value = '20:00';
+      if (forceBruteInput) forceBruteInput.checked = false;
     }
     syncOptionsFromUi();
   }
 
   applyOptionsCache();
-  [maxCredInput, maxMateriasInput, maxDiasInput, topNInput, horaInicioInput, horaFinInput].forEach(el=>{
+  [maxCredInput, maxMateriasInput, maxDiasInput, topNInput, horaInicioInput, horaFinInput, forceBruteInput].forEach(el=>{
     if (!el) return;
     el.addEventListener('change', syncOptionsFromUi);
     el.addEventListener('blur', syncOptionsFromUi);
@@ -1513,8 +1733,15 @@ window.addEventListener('DOMContentLoaded', ()=>{
       const h3 = document.createElement('h3'); h3.textContent = `${totalMats} materias · ${totalCreds} créditos`; selectedEl.appendChild(h3);
 
       materiaNames.sort((a,b)=>{
-        const obA = materiaMap.get(a) ? !!materiaMap.get(a).obligatoria : false;
-        const obB = materiaMap.get(b) ? !!materiaMap.get(b).obligatoria : false;
+        const matA = materiaMap.get(a);
+        const matB = materiaMap.get(b);
+        const obA = matA ? !!matA.obligatoria : false;
+        const obB = matB ? !!matB.obligatoria : false;
+        const selA = !!sels[a];
+        const selB = !!sels[b];
+        const rankA = obA ? 0 : (selA ? 1 : 2);
+        const rankB = obB ? 0 : (selB ? 1 : 2);
+        if (rankA !== rankB) return rankA - rankB;
         if (obA && !obB) return -1; if (!obA && obB) return 1;
         return a.localeCompare(b);
       });
@@ -1713,7 +1940,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
         } else {
           summaryEl.innerHTML = '';
           selectedEl.innerHTML = '';
-          if (scheduleEl) scheduleEl.innerHTML = '';
+          if (scheduleEl) { scheduleEl.classList.add('empty'); scheduleEl.innerHTML = ''; }
           // Solo limpiar selección de grupos, no desmarcar materias cargadas
           window.__currentScheduleSelections = {};
           renderLoadedMaterias();
@@ -1746,7 +1973,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     } else {
       summaryEl.innerHTML = '';
       selectedEl.innerHTML = '';
-      if (scheduleEl) scheduleEl.innerHTML = '';
+      if (scheduleEl) { scheduleEl.classList.add('empty'); scheduleEl.innerHTML = ''; }
       window.__currentScheduleSelections = {};
       renderLoadedMaterias();
     }
@@ -1778,7 +2005,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     renderScheduleTabUI();
     summaryEl.innerHTML = '';
     selectedEl.innerHTML = '';
-    if (scheduleEl) scheduleEl.innerHTML = '';
+    if (scheduleEl) { scheduleEl.classList.add('empty'); scheduleEl.innerHTML = ''; }
     // Solo limpiar selección de grupos, no desmarcar materias cargadas
     window.__currentScheduleSelections = {};
     renderLoadedMaterias();
@@ -1914,10 +2141,27 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
   window.processTextHandler = processTextHandler;
   try{
-    if (processTextBtn){
-      processTextBtn.addEventListener('click', ()=>{ processTextHandler(); });
-    }
     if (materiasTextInput){
+      let materiasDebounce = null;
+      let lastProcessedMateriasText = '';
+      materiasTextInput.addEventListener('input', ()=>{
+        clearTimeout(materiasDebounce);
+        materiasDebounce = setTimeout(async ()=>{
+          const raw = (materiasTextInput.value || '').trim();
+          if (!raw){
+            lastProcessedMateriasText = '';
+            if (errorsEl){
+              errorsEl.classList.add('hidden');
+              errorsEl.classList.remove('error');
+              errorsEl.textContent = '';
+            }
+            return;
+          }
+          if (raw === lastProcessedMateriasText) return;
+          lastProcessedMateriasText = raw;
+          await processTextHandler();
+        }, 700);
+      });
       materiasTextInput.addEventListener('keydown', (event)=>{
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter'){
           event.preventDefault();
@@ -1935,7 +2179,8 @@ async function loadRepoFromRepo(){
     const res = await fetch('../materias.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-      const mapped = mapRepoMaterias(data);
+      const mapped = mapRepoMaterias(data, { fuente: 'unal' });
+      applyDefaultExcludedGroupsForFuente(mapped, 'unal');
       window.__originalRepo = mapped;
       window.__lastLoaded = mapped;
       try{ renderLoadedMaterias(); }catch(e){}
@@ -1968,11 +2213,6 @@ async function loadRepoFromRepo(){
     console.log('Generar horario: botón pulsado');
     const data = window.__lastLoadedFiltered && window.__lastLoadedFiltered.length ? window.__lastLoadedFiltered : window.__lastLoaded;
     if (!data){ statusEl.textContent='Carga primero un JSON o usa el ejemplo.'; return; }
-    if (Array.isArray(window.__lastLoadedFiltered) && window.__lastLoadedFiltered.length > MAX_SELECTED_FOR_ANALYSIS){
-      showError('Límite de materias alcanzado', new Error(`Máximo ${MAX_SELECTED_FOR_ANALYSIS} materias seleccionadas.`));
-      statusEl.textContent = `Reduce la selección a ${MAX_SELECTED_FOR_ANALYSIS} materias o menos para analizar.`;
-      return;
-    }
     // Filtrar grupos excluidos individualmente
     const dataForRun = (data||[]).map(m=>{
       const excl = (window.__excludedGrupos||{})[m.nombre];
@@ -1993,11 +2233,11 @@ async function loadRepoFromRepo(){
       return;
     }
     lastRunTimings = null;
-    currentRunToken = { cancelled: false, deadlineAt: Date.now() + MAX_SCHEDULER_RUN_MS };
+    currentRunToken = { cancelled: false };
     const complexityEstimate = estimarComplejidadSeleccionJS(dataForRun, opts, currentRunToken);
     runBtn.disabled = true;
     if (cancelRunBtn){ cancelRunBtn.classList.remove('hidden'); cancelRunBtn.disabled = false; }
-    statusEl.textContent = `Generando... maximo ${Math.round(MAX_SCHEDULER_RUN_MS / 1000)} s.`;
+    statusEl.textContent = 'Generando...';
     setGenerationProgress({ state: 'running', text: 'Preparando calculo...', percent: 0, exact: false });
     resultEl.classList.add('hidden');
     summaryEl.innerHTML = '';
@@ -2005,11 +2245,12 @@ async function loadRepoFromRepo(){
       console.log('Llamando a generarHorarioOptimoJS con opts', opts);
       if (!generarHorarioOptimoJS) throw new Error('generarHorarioOptimoJS no está disponible');
       const resultados = await generarHorarioOptimoJS(dataForRun, opts, handleGenerationProgress, currentRunToken);
+      if (resultados && !Array.isArray(resultados) && resultados.timings) lastRunTimings = resultados.timings;
       const timedOut = !!(resultados && resultados.__timedOut);
       console.log('generarHorarioOptimoJS finalizó, resultado:', resultados);
       if (!resultados || (Array.isArray(resultados) && !resultados.length)){
         setGenerationProgress({ state: 'done', text: timedOut ? 'Tiempo agotado sin resultados parciales.' : 'Analisis completado. No se encontro un horario.', percent: 100 });
-        statusEl.textContent = timedOut ? `Se alcanzaron ${Math.round(MAX_SCHEDULER_RUN_MS / 1000)} s y no se encontro un horario viable.` : 'No se encontró horario.';
+        statusEl.textContent = timedOut ? 'Tiempo agotado sin encontrar un horario viable.' : 'No se encontró horario.';
         renderTimingSummary(summaryEl, complexityEstimate, lastRunTimings);
         return;
       }
@@ -2019,14 +2260,14 @@ async function loadRepoFromRepo(){
       if (!resultList.length){
         setGenerationProgress({ state: 'done', text: timedOut ? 'Tiempo agotado, pero los parciales no cumplieron las restricciones.' : 'Analisis completado. No se encontro un horario valido.', percent: 100 });
         statusEl.textContent = timedOut
-          ? `Se alcanzaron ${Math.round(MAX_SCHEDULER_RUN_MS / 1000)} s y no se encontró un horario parcial que cumpla las restricciones.`
+          ? 'Tiempo agotado y no se encontró un horario parcial que cumpla las restricciones.'
           : 'No se encontró un horario que cumpla las restricciones.';
         renderTimingSummary(summaryEl, complexityEstimate, lastRunTimings);
         return;
       }
 
       statusEl.textContent = timedOut
-        ? `${resultList.length} horario(s) parcial(es) válido(s) encontrado(s) en ${Math.round(MAX_SCHEDULER_RUN_MS / 1000)} s.`
+        ? `${resultList.length} horario(s) parcial(es) válido(s) encontrado(s) antes de interrumpir el cálculo.`
         : `${resultList.length} horario(s) válido(s) encontrado(s).`;
       setGenerationProgress({ state: 'done', text: timedOut ? `Tiempo agotado. ${resultList.length} resultado(s) parcial(es) válido(s).` : `Analisis completado. ${resultList.length} horario(s) válido(s) encontrado(s).`, percent: 100 });
       resultEl.classList.remove('hidden');
@@ -2296,6 +2537,16 @@ async function loadRepoFromRepo(){
 
     updateHistorialVisibility(universidadSelect ? universidadSelect.value : '');
 
+    if (!f){
+      if (importRowEl) importRowEl.classList.add('hidden');
+      if (cmFormEl) cmFormEl.classList.add('hidden');
+      if (histResult) {
+        histResult.classList.add('hidden');
+        histResult.textContent = '';
+      }
+      return;
+    }
+
     if (f === 'otro'){
       if (importRowEl) importRowEl.classList.add('hidden');
       if (cmFormEl) cmFormEl.classList.remove('hidden');
@@ -2509,7 +2760,8 @@ async function loadRepoFromRepo(){
         }
         return cumplePrereqsJS(d, aprobadasDict);
       });
-      const mapped = mapRepoMaterias(filtered || []);
+      const mapped = mapRepoMaterias(filtered || [], { fuente: f });
+      applyDefaultExcludedGroupsForFuente(mapped, f);
       window.__lastLoaded = mergeMateriasLists(window.__lastLoaded || [], mapped);
       if (window.__manualCache && window.__manualCache.length){
         window.__lastLoaded = mergeMateriasLists(window.__lastLoaded, window.__manualCache);
@@ -2534,22 +2786,68 @@ async function loadRepoFromRepo(){
     }
   }catch(_){ }
 
+  function persistHistorialAprobadas(aprobadas){
+    const nextAprobadas = Array.isArray(aprobadas) ? aprobadas : [];
+    window.__historialAprobadas = nextAprobadas;
+    if (nextAprobadas.length){
+      localStorage.setItem('historial_aprobadas', JSON.stringify(nextAprobadas));
+    } else {
+      localStorage.removeItem('historial_aprobadas');
+    }
+  }
+
+  function renderHistorialAprobadas(aprobadas, options = {}){
+    if (!histResult) return;
+    const items = Array.isArray(aprobadas) ? aprobadas : [];
+    const title = options.title || 'Aprobadas extraídas';
+    histResult.classList.remove('hidden');
+    if (!items.length){
+      histResult.textContent = options.emptyText || 'Historial vacío.';
+      return;
+    }
+    histResult.innerHTML = `
+      <div class="historial-aprobadas-header">
+        <strong>${escapeXml(title)}: ${items.length}</strong>
+        <button type="button" class="historial-aprobada-remove" data-clear-historial="1" title="Borrar historial cargado">×</button>
+      </div>
+    `;
+  }
+
+  async function refreshMateriasForCurrentSelection(){
+    if (!carreraImportSelect || !carreraImportSelect.value || typeof carreraImportSelect.onchange !== 'function') return;
+    await carreraImportSelect.onchange({ isTrusted: true });
+  }
+
+  if (histResult){
+    histResult.addEventListener('click', async (event)=>{
+      const removeBtn = event.target.closest('[data-clear-historial]');
+      if (!removeBtn) return;
+      persistHistorialAprobadas([]);
+      renderHistorialAprobadas([], { emptyText: 'Historial vacío.' });
+      statusEl.textContent = 'Historial actualizado. No quedan materias aprobadas.';
+      try{
+        await refreshMateriasForCurrentSelection();
+      }catch(err){
+        console.warn('No se pudieron refrescar las materias tras eliminar una aprobada', err);
+      }
+    });
+  }
+
   // Procesar historial automáticamente al pegar/editar solo para UNAL
   let histDebounce = null;
   historialText.addEventListener('input', ()=>{
     clearTimeout(histDebounce);
     histDebounce = setTimeout(()=>{
       const txt = (historialText.value||'').trim();
-      if (!txt){ histResult.classList.remove('hidden'); histResult.textContent = 'Historial vacío.'; window.__historialAprobadas = []; localStorage.removeItem('historial_aprobadas'); return; }
+      if (!txt){ persistHistorialAprobadas([]); renderHistorialAprobadas([], { emptyText: 'Historial vacío.' }); return; }
       // Only process if Universidad Nacional is selected
       if (universidadSelect && universidadSelect.value !== 'unal'){
         histResult.classList.remove('hidden'); histResult.textContent = 'La extracción automática de historial solo está disponible para la Universidad Nacional.';
         return;
       }
       const aprobadas = extraerMateriasAprobadasJS(txt);
-      localStorage.setItem('historial_aprobadas', JSON.stringify(aprobadas));
-      histResult.classList.remove('hidden'); histResult.textContent = `Aprobadas extraídas: ${aprobadas.length}`;
-      window.__historialAprobadas = aprobadas;
+      persistHistorialAprobadas(aprobadas);
+      renderHistorialAprobadas(aprobadas, { title: 'Aprobadas extraídas', emptyText: 'Historial vacío.' });
       historialText.value = '';
       statusEl.textContent = `Historial procesado. Materias aprobadas: ${aprobadas.length}`;
     }, 500);
@@ -2558,7 +2856,7 @@ async function loadRepoFromRepo(){
   // cargar historial si existe en cache y procesarlo automáticamente si la fuente es UNAL
   try{
     const h = JSON.parse(localStorage.getItem('historial_aprobadas')||'null');
-    if (h){ window.__historialAprobadas = h; histResult.classList.remove('hidden'); histResult.textContent = `Historial (cache): ${h.length} aprobadas`; }
+    if (h){ persistHistorialAprobadas(h); renderHistorialAprobadas(h, { title: 'Historial (cache)', emptyText: 'Historial vacío.' }); }
   }catch(e){}
 
   // seguridad extra: si el scheduler no se cargó en 3s, desactivar botón y mostrar nota
@@ -2572,7 +2870,7 @@ async function loadRepoFromRepo(){
   }catch(initErr){ console.error('DOMContentLoaded init failed', initErr); try{ const dbg2=document.getElementById('sp-debug-badge'); if(dbg2) dbg2.textContent='app.js: init error'; }catch(_){ } showError('Error inicializando la UI', initErr); }
 }); // end DOMContentLoaded
 
-function mapRepoMaterias(data){
+function mapRepoMaterias(data, options = {}){
   const diasPorNumero = {
     1: 'LUNES',
     2: 'MARTES',
@@ -2609,7 +2907,8 @@ function mapRepoMaterias(data){
     creditos: m.creditos || 0,
     tipologia: m.tipologia || m.Tipologia || '',
     obligatoria: !!m.obligatoria,
-    grupos: (m.grupos||[]).map(g=>({
+    grupos: (m.grupos||[])
+      .map(g=>({
       grupo: g.grupo,
       creditos: g.creditos || m.creditos || 0,
       cupos: g.cupos || g.cuposDisponibles || 0,
@@ -2648,7 +2947,11 @@ function extraerMateriasAprobadasJS(texto){
 function renderScheduleSVG(best, opts){
   const scheduleEl = document.getElementById('schedule');
   if (!scheduleEl) return;
-  if (!best || !best.comb) { scheduleEl.innerHTML = ''; return; }
+  if (!best || !best.comb) {
+    scheduleEl.classList.add('empty');
+    scheduleEl.innerHTML = '';
+    return;
+  }
   // Determine hours range from earliest and latest class times in the week.
   let startHour = 6, endHour = 22;
   try{
@@ -2717,7 +3020,9 @@ function renderScheduleSVG(best, opts){
   }
   svg += `</svg>`;
   const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  scheduleEl.classList.remove('hidden'); scheduleEl.innerHTML = `<img src="${dataUrl}" alt="Horario">`;
+  scheduleEl.classList.remove('hidden');
+  scheduleEl.classList.remove('empty');
+  scheduleEl.innerHTML = `<img src="${dataUrl}" alt="Horario">`;
   scheduleEl._lastSvg = svg;
   scheduleEl._lastBest = best;
   scheduleEl._lastOpts = opts;

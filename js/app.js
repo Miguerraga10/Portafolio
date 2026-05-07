@@ -937,6 +937,7 @@ function renderCatalogCoursesPage() {
     card.appendChild(disabledBtn);
     container.appendChild(card);
   });
+
 }
 
 function renderCoursePage() {

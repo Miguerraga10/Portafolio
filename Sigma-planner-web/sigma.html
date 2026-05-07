@@ -36,14 +36,6 @@
   </section>
 
   <main>
-    <section class="sigma-ads-top" aria-label="Publicidad superior">
-      <ins class="adsbygoogle sigma-ad sigma-ad-premium"
-        style="display:block"
-        data-ad-client="ca-pub-0000000000000000"
-        data-ad-slot="1111111111"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    </section>
     <div class="sigma-brand">
       <img class="sigma-logo" src="Img/Sigma-Logo.png" alt="Sigma Planner" />
     </div>
@@ -62,10 +54,9 @@
       <label>Facultad: <select id="facultadSelect" disabled><option value="">-- --</option></select></label>
       <label>Carrera: <select id="carreraImportSelect" disabled><option value="">-- --</option></select></label>
       <!-- botones de carga eliminados (se manejan por import desde repo manualmente) -->
-      <div id="importRowSection" class="field-row import-row">
+      <div id="importRowSection" class="field-row import-row hidden">
         <label>Pegar materias:
           <textarea id="materiasText" rows="3" placeholder='Pega aquí el texto de materias'></textarea>
-          <button id="processTextBtn" type="button" style="margin-top:8px">Añadir materia desde texto</button>
         </label>
         <!-- Nivel y Sede eliminados según petición -->
         <label>Historial académico:
@@ -110,7 +101,7 @@
       <aside class="sidebar">
         <div class="side-by-side" style="display:flex;gap:12px;align-items:flex-start">
           <section class="loaded-materias panel-card" style="flex:2;min-width:420px">
-            <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0/15 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
+            <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
             <div id="loadedMaterias" class="panel">
               <div class="muted">No hay materias cargadas.</div>
             </div>
@@ -147,7 +138,7 @@
               <h3>Opciones</h3>
               <div class="field-row">
                 <label>Max cr: <input id="maxCred" type="number" min="1" max="30"></label>
-                <label>Max mat: <input id="maxMaterias" type="number" value="8" min="1" max="8"></label>
+                <label>Max mat: <input id="maxMaterias" type="number" value="8" min="1" max="99"></label>
               </div>
               <div class="field-row">
                 <label>Hora inicio: <input id="horaInicio" type="time" value="08:00"></label>
@@ -162,6 +153,9 @@
                   <label style="display:flex;align-items:center;gap:6px"><input id="usarCupos" type="checkbox"> Usar cupos</label>
                   <label style="display:flex;align-items:center;gap:6px"><input id="usarVirtuales" type="checkbox" checked> Usar virtuales</label>
                 </div>
+                <div style="display:flex;gap:12px;align-items:center;margin-top:10px">
+                  <label style="display:flex;align-items:center;gap:6px"><input id="forceBrute" type="checkbox"> Forzar fuerza bruta</label>
+                </div>
               </div>
             </section>
           </div>
@@ -173,26 +167,10 @@
         <section id="errors" class="status hidden"></section>
 
         <div class="sigma-run-layout">
-          <aside class="sigma-side-ad sigma-side-ad-left" aria-label="Publicidad lateral izquierda">
-            <ins class="adsbygoogle sigma-ad sigma-ad-side"
-              style="display:block"
-              data-ad-client="ca-pub-0000000000000000"
-              data-ad-slot="2222222222"
-              data-ad-format="auto"
-              data-full-width-responsive="true"></ins>
-          </aside>
           <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
           <button id="runBtn">Generar horario</button>
           <button id="cancelRunBtn" class="secondary hidden" type="button">Cancelar</button>
           </div>
-          <aside class="sigma-side-ad sigma-side-ad-right" aria-label="Publicidad lateral derecha">
-            <ins class="adsbygoogle sigma-ad sigma-ad-side"
-              style="display:block"
-              data-ad-client="ca-pub-0000000000000000"
-              data-ad-slot="3333333333"
-              data-ad-format="auto"
-              data-full-width-responsive="true"></ins>
-          </aside>
         </div>
 
         <section id="result" class="result hidden">
@@ -216,7 +194,6 @@
     </div>
 
   </main>
-
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-copy">© 2026 Miguel Angel Villarraga Franco</div>
@@ -260,9 +237,6 @@
         });
       }
 
-      document.querySelectorAll('.adsbygoogle').forEach(function () {
-        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
-      });
     });
   </script>
 </body>
