@@ -1008,7 +1008,7 @@ try{
 try{ window.__excludedGrupos = loadExcludedGruposCache(); }catch(_){ window.__excludedGrupos = {}; }
 
 async function generarHorariosJS(materias, opts){
-  const BRUTE_FORCE_LIMIT = 20000000;
+  const BRUTE_FORCE_LIMIT = 2000000;
   const HEURISTIC_BEAM_WIDTH = 160;
   const startedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   // Implementación equivalente a Python: prefiltrar, asignar obligatorias únicas, generar combinaciones viables y paralelizar evaluación
@@ -1530,7 +1530,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const maxcreditos = clampInputValue(maxCredInput, 1, 30, 30);
     const maxmaterias = clampInputValue(maxMateriasInput, 1, 99, 8);
     const maxdias = clampInputValue(maxDiasInput, 1, 7, 3);
-    const topN = clampInputValue(topNInput, 1, 3, 1);
+    const topN = clampInputValue(topNInput, 1, 5, 1);
     const hora_inicio = normalizeTimeInput(horaInicioInput, '06:00');
     const hora_fin = normalizeTimeInput(horaFinInput, '20:00');
     const forceBrute = !!(forceBruteInput && forceBruteInput.checked);

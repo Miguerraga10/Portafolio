@@ -879,9 +879,23 @@ h4 {
 /* ─────────────────────────────────────────────────────────── */
 
 .site-footer {
+  background: #000000;
   border-top: 1px solid var(--line);
   margin-top: 1rem;
   padding: 1rem 0;
+}
+
+input,
+select,
+textarea {
+  background: #000000;
+  color: #ecf3ff;
+  border: 1px solid var(--line);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #95a4bf;
 }
 
 .footer-grid {

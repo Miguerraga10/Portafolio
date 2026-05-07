@@ -327,7 +327,7 @@ export function estimarComplejidadSeleccionJS(materias, opts, cancelToken){
 
 export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelToken){
   // Implementación alineada con Main.py
-  const BRUTE_FORCE_LIMIT = 20000000;
+  const BRUTE_FORCE_LIMIT = 2000000;
   const HEURISTIC_BEAM_WIDTH = 160;
   const progressCallback = typeof onProgress === 'function' ? onProgress : null;
   const YIELD_INTERVAL = 200;
@@ -342,7 +342,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
   let preparationUnitsProcessed = 0;
   let evaluationUnitsProcessed = 0;
   let totalWorkUnits = 0;
-  const topN = Math.max(1, Math.min(3, parseInt(opts.topN, 10) || 1));
+  const topN = Math.max(1, Math.min(5, parseInt(opts.topN, 10) || 1));
   const topResults = []; // array ordenado de los mejores resultados (hasta topN)
 
 
