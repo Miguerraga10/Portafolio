@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sigma Planner</title>
+  <meta name="description" content="Sigma Planner es una versión autónoma para organizar y optimizar horarios universitarios con datos locales." />
+  <link rel="icon" href="Img/Sigma-Icono.png" type="image/png">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <a class="brand" href="https://miguerraga10.netlify.app/" target="_blank" rel="noopener">
+        <img src="assets/M10.png" alt="M10 logo" class="brand-logo">
+        Miguel Angel Villarraga Franco
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li>
+          <a href="#home" class="active">
+            <img src="Img/Sigma-Icono.png" alt="Sigma Planner" class="nav-home-logo">
+            Home
+          </a>
+        </li>
+        <li><a href="#optimizar-horario">Optimizar horario</a></li>
+        <li><a href="#quienes-somos">¿Quiénes somos?</a></li>
+        <li><a href="#como-usar">¿Cómo usar?</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="generationProgress" class="generation-progress hidden" aria-live="polite" aria-label="Progreso de generación de horarios">
+    <div class="generation-progress__meta">
+      <span id="generationProgressText">Calculando horario...</span>
+      <span id="generationProgressPercent">0%</span>
+    </div>
+    <div class="generation-progress__track">
+      <div id="generationProgressFill" class="generation-progress__fill"></div>
+    </div>
+  </section>
+
+  <main class="page-shell">
+    <section id="home" class="landing-hero page-section">
+      <div class="hero-card">
+        <div class="hero-copy">
+          <h1>Sigma Planner</h1>
+          <p>
+            Una versión autónoma del optimizador de horarios para trabajar y evolucionar el proyecto sin depender del resto del portafolio.
+            El motor, el worker, los datos y la interfaz viven dentro de esta misma carpeta.
+          </p>
+          <div class="hero-actions">
+            <a class="btn-link" href="#optimizar-horario">Ir al optimizador</a>
+            <a class="btn-link ghost" href="#como-usar">Ver cómo funciona</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="Img/Sigma-Logo.png" alt="Logo de Sigma Planner">
+        </div>
+      </div>
+      <div class="feature-strip">
+        <article class="feature-card">
+          <h3>Motor local</h3>
+          <p>El cálculo de horarios, la heurística y el procesamiento corren con archivos propios dentro de Sigma-Planner.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Datos integrados</h3>
+          <p>Los catálogos de UNAL y UdeA quedan embebidos localmente para hacer pruebas rápidas sin depender del resto del sitio.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Base para crecer</h3>
+          <p>Esta carpeta ya puede servir como nuevo punto de desarrollo del producto sin romper la versión antigua.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="optimizar-horario" class="page-section">
+      <div class="sigma-brand">
+        <img class="sigma-logo" src="Img/Sigma-Logo.png" alt="Sigma Planner" />
+      </div>
+
+      <section class="import-panel fullwidth content-card">
+        <label>Universidad:
+          <select id="universidadSelect">
+            <option value="">-- elegir --</option>
+            <option value="unal">Universidad Nacional</option>
+            <option value="udea">Universidad de Antioquia</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label>Sede:
+          <select id="sedeSelect" disabled><option value="">-- --</option></select>
+        </label>
+        <label>Facultad: <select id="facultadSelect" disabled><option value="">-- --</option></select></label>
+        <label>Carrera: <select id="carreraImportSelect" disabled><option value="">-- --</option></select></label>
+
+        <div id="importRowSection" class="field-row import-row hidden">
+          <label>Pegar materias:
+            <textarea id="materiasText" rows="3" placeholder="Pega aquí el texto de materias"></textarea>
+          </label>
+          <label>Historial académico:
+            <textarea id="historialText" rows="3" placeholder="Pega aquí el historial académico para extraer aprobadas" style="width:100%;box-sizing:border-box"></textarea>
+          </label>
+        </div>
+        <div id="histResult" class="status hidden" style="grid-column:1/-1"></div>
+
+        <div id="customMateriaForm" class="panel-card hidden" style="grid-column:1/-1;margin-top:8px;padding:10px 12px">
+          <h4 style="margin:0 0 8px;font-size:13px">Nueva materia personalizada</h4>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;flex:2;min-width:130px">Nombre
+              <input id="cmNombre" type="text" placeholder="Ej: Cálculo I">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:90px">Código
+              <input id="cmCodigo" type="text" placeholder="Ej: 1000001">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:60px">Créditos
+              <input id="cmCreditos" type="number" value="3" min="1" max="20">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:105px">Tipo
+              <select id="cmTipo">
+                <option value="obligatoria">Obligatoria</option>
+                <option value="optativa">Optativa</option>
+              </select>
+            </label>
+          </div>
+          <div id="cmGruposContainer"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+            <button id="cmAddGrupoBtn" type="button" style="padding:5px 12px;font-size:12px">+ Grupo</button>
+            <button id="cmAddMateriaBtn" type="button" style="padding:5px 14px;font-size:12px">Agregar materia</button>
+            <span id="cmStatus" style="font-size:12px;margin-left:4px"></span>
+          </div>
+        </div>
+      </section>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="side-by-side" style="display:flex;gap:12px;align-items:flex-start">
+            <section class="loaded-materias panel-card" style="flex:2;min-width:420px">
+              <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
+              <div id="loadedMaterias" class="panel">
+                <div class="muted">No hay materias cargadas.</div>
+              </div>
+              <div style="margin-top:8px">
+                <button id="selectAllBtn">Seleccionar todo</button>
+                <button id="deselectAllBtn">Deseleccionar todo</button>
+                <button id="clearAllBtn" class="secondary">Eliminar todo</button>
+              </div>
+            </section>
+
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <section class="intervalos-panel panel-card" style="width:320px;min-width:260px">
+                <h3>Intervalos libres</h3>
+                <div class="field-row">
+                  <label>Hora inicio: <input id="intervalStart" type="time" value="12:00"></label>
+                  <label>Hora fin: <input id="intervalEnd" type="time" value="14:00"></label>
+                </div>
+                <label>Días:
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+                    <label><input type="checkbox" class="diasChk" value="LUNES"> Lun</label>
+                    <label><input type="checkbox" class="diasChk" value="MARTES"> Mar</label>
+                    <label><input type="checkbox" class="diasChk" value="MIÉRCOLES"> Mié</label>
+                    <label><input type="checkbox" class="diasChk" value="JUEVES"> Jue</label>
+                    <label><input type="checkbox" class="diasChk" value="VIERNES"> Vie</label>
+                    <label><input type="checkbox" class="diasChk" value="SÁBADO"> Sáb</label>
+                    <label><input type="checkbox" class="diasChk" value="DOMINGO"> Dom</label>
+                  </div>
+                </label>
+                <button id="addIntervalBtn" class="interval-add" aria-label="Añadir intervalo" title="Añadir intervalo">+</button>
+                <div id="intervalList" class="status" style="margin-top:8px"></div>
+              </section>
+
+              <section class="opciones-panel panel-card" style="width:320px;min-width:260px">
+                <h3>Opciones</h3>
+                <div class="field-row">
+                  <label>Max cr: <input id="maxCred" type="number" min="1" max="30"></label>
+                  <label>Max mat: <input id="maxMaterias" type="number" value="8" min="1" max="99"></label>
+                </div>
+                <div class="field-row">
+                  <label>Hora inicio: <input id="horaInicio" type="time" value="08:00"></label>
+                  <label>Hora fin: <input id="horaFin" type="time" value="20:00"></label>
+                </div>
+                <div class="small-box">
+                  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                    <label style="margin:0">Max días: <input id="maxDias" type="number" value="7" min="1" max="7" style="width:84px;margin-left:8px"></label>
+                    <label style="margin:0">Top horarios: <input id="topN" type="number" value="1" min="1" max="3" style="width:56px;margin-left:8px"></label>
+                  </div>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="display:flex;align-items:center;gap:6px"><input id="usarCupos" type="checkbox"> Usar cupos</label>
+                    <label style="display:flex;align-items:center;gap:6px"><input id="usarVirtuales" type="checkbox" checked> Usar virtuales</label>
+                  </div>
+                  <div style="display:flex;gap:12px;align-items:center;margin-top:10px">
+                    <label style="display:flex;align-items:center;gap:6px"><input id="forceBrute" type="checkbox"> Forzar fuerza bruta</label>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </aside>
+
+        <section class="content">
+          <section id="errors" class="status hidden"></section>
+
+          <div class="sigma-run-layout">
+            <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+              <button id="runBtn">Generar horario</button>
+              <button id="cancelRunBtn" class="secondary hidden" type="button">Cancelar</button>
+            </div>
+          </div>
+
+          <section id="result" class="result hidden">
+            <div class="schedule-tabs-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <div class="schedule-tabs" id="scheduleTabs" style="flex:1">
+                <button id="addTabBtn" type="button" class="schedule-tab-add" aria-label="Nueva pestaña">+</button>
+              </div>
+              <button id="deleteAllSchedulesBtn" class="secondary" style="white-space:nowrap">Eliminar todos</button>
+            </div>
+            <div id="summary"></div>
+            <div class="result-grid">
+              <div id="schedule" class="panel schedule-panel empty" style="min-height:240px"></div>
+              <div id="selected" class="panel selected-panel"></div>
+            </div>
+            <div class="actions">
+              <button id="downloadBtn" class="hidden">Descargar imagen</button>
+              <button id="downloadExcelBtn" class="hidden">Descargar Excel</button>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+
+    <section id="quienes-somos" class="page-section">
+      <div class="content-grid">
+        <article class="content-card">
+          <h2>¿Quiénes somos?</h2>
+          <p>
+            Sigma Planner nace como una herramienta enfocada en estudiantes que necesitan explorar combinaciones de grupos, restricciones de tiempo,
+            materias obligatorias y optativas sin depender del flujo normal del sistema académico.
+          </p>
+          <p>
+            Esta versión separada está pensada para acelerar iteraciones de producto, pruebas locales y nuevas mejoras del planificador.
+          </p>
+        </article>
+        <article class="content-card">
+          <h2>¿Qué hace distinto a Sigma?</h2>
+          <p>
+            Combina filtrado de grupos, intervalos libres, cupos, virtualidad y un motor exacto con respaldo heurístico cuando el espacio de búsqueda crece demasiado.
+          </p>
+          <p>
+            El objetivo no es solo listar materias: es ayudarte a construir un horario viable, entendible y útil para tomar decisiones rápido.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="como-usar" class="page-section">
+      <div class="content-card">
+        <h2>¿Cómo usar?</h2>
+        <ol class="steps-list">
+          <li>Selecciona universidad, sede, facultad y carrera para cargar la base de materias correspondiente.</li>
+          <li>Marca o desmarca las materias que quieres considerar en el análisis.</li>
+          <li>Ajusta créditos, rango horario, máximo de días e intervalos libres según tus restricciones.</li>
+          <li>Genera el horario para obtener la mejor combinación disponible con el motor exacto o heurístico.</li>
+          <li>Revisa el horario resultante, las materias elegidas y exporta la opción que te sirva.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-copy">© 2026 Miguel Angel Villarraga Franco</div>
+      <div class="footer-socials">
+        <a href="mailto:miguerraga10@gmail.com" class="icon-btn" aria-label="Correo">✉</a>
+        <a href="https://www.linkedin.com/in/miguel-angel-villarraga-franco/" target="_blank" rel="noopener" class="icon-btn" aria-label="LinkedIn">in</a>
+        <a href="https://www.instagram.com/miguerraga10/" target="_blank" rel="noopener" class="icon-btn" aria-label="Instagram">ig</a>
+        <a href="https://x.com/miguerraga10" target="_blank" rel="noopener" class="icon-btn" aria-label="X">X</a>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var links = document.getElementById("nav-links");
+      var navAnchors = document.querySelectorAll(".nav-links a");
+      navAnchors.forEach(function (anchor) {
+        anchor.addEventListener("click", function () {
+          navAnchors.forEach(function (item) { item.classList.remove("active"); });
+          anchor.classList.add("active");
+        });
+      });
+    });
+  </script>
+</body>
+</html>
