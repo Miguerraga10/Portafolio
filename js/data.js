@@ -44,8 +44,11 @@ function withModules(course) {
 }
 
 function createClassModules(classItems) {
+  var classCounter = 0;
   return classItems.map(function (item, index) {
-    const moduleNumber = index + 1;
+    var isExam = /examen/i.test(String(item.moduleTitle || "")) || /examen/i.test(String(item.title || "")) || /examen/i.test(String(item.id || ""));
+    if (!isExam) classCounter += 1;
+    const moduleNumber = classCounter;
     return {
       id: item.id || ("clase-" + moduleNumber),
       title: item.moduleTitle || ("Clase #" + moduleNumber),
@@ -765,6 +768,195 @@ function createEstadistica2Modules() {
 }
 
 function createJaponesN5Modules() {
+  function normalizeJaponesN5Text(value) {
+    const replacements = [
+      [/\bAdemas\b/g, "Además"],
+      [/\bademas\b/g, "además"],
+      [/\bAnalisis\b/g, "Análisis"],
+      [/\banalisis\b/g, "análisis"],
+      [/\bautonoma\b/g, "autónoma"],
+      [/\bautonomos\b/g, "autónomos"],
+      [/\bAutonomos\b/g, "Autónomos"],
+      [/\bbano\b/g, "baño"],
+      [/\bBasica\b/g, "Básica"],
+      [/\bbasica\b/g, "básica"],
+      [/\bBasicas\b/g, "Básicas"],
+      [/\bbasicas\b/g, "básicas"],
+      [/\bBasico\b/g, "Básico"],
+      [/\bbasico\b/g, "básico"],
+      [/\bBasicos\b/g, "Básicos"],
+      [/\bbasicos\b/g, "básicos"],
+      [/\bcaracteristicas\b/g, "características"],
+      [/\bCaracteristicas\b/g, "Características"],
+      [/\bclasificacion\b/g, "clasificación"],
+      [/\bCombinacion\b/g, "Combinación"],
+      [/\bcombinacion\b/g, "combinación"],
+      [/\bcomparacion\b/g, "comparación"],
+      [/\bComparacion\b/g, "Comparación"],
+      [/\bcomprendera\b/g, "comprenderá"],
+      [/\bComprendera\b/g, "Comprenderá"],
+      [/\bcomprension\b/g, "comprensión"],
+      [/\bComprension\b/g, "Comprensión"],
+      [/\bcomunicacion\b/g, "comunicación"],
+      [/\bComunicacion\b/g, "Comunicación"],
+      [/\bconjugacion\b/g, "conjugación"],
+      [/\bConjugacion\b/g, "Conjugación"],
+      [/\bconstruccion\b/g, "construcción"],
+      [/\bConstruccion\b/g, "Construcción"],
+      [/\bcortesia\b/g, "cortesía"],
+      [/\bdescripcion\b/g, "descripción"],
+      [/\bDescripcion\b/g, "Descripción"],
+      [/\bDespues\b/g, "Después"],
+      [/\bdespues\b/g, "después"],
+      [/\bdia\b/g, "día"],
+      [/\bdias\b/g, "días"],
+      [/\bdisenado\b/g, "diseñado"],
+      [/\bdistribucion\b/g, "distribución"],
+      [/\bduracion\b/g, "duración"],
+      [/\bentonacion\b/g, "entonación"],
+      [/\bEntonacion\b/g, "Entonación"],
+      [/\bespecificos\b/g, "específicos"],
+      [/\besta\b bien/g, "está bien"],
+      [/\bestara\b/g, "estará"],
+      [/\bEvaluacion\b/g, "Evaluación"],
+      [/\bevaluacion\b/g, "evaluación"],
+      [/\bexpresion\b/g, "expresión"],
+      [/\bExpresion\b/g, "Expresión"],
+      [/\bExpresiones de hora: gozen, gogo, -ji, -fun\b/g, "Expresiones de hora: gozen, gogo, -ji, -fun"],
+      [/\bfrances\b/g, "francés"],
+      [/\bfuncion\b/g, "función"],
+      [/\bFuncion\b/g, "Función"],
+      [/\bgramatica\b/g, "gramática"],
+      [/\bGramatica\b/g, "Gramática"],
+      [/\bidentificara\b/g, "identificará"],
+      [/\bIdentificacion\b/g, "Identificación"],
+      [/\bidentificacion\b/g, "identificación"],
+      [/\bingles\b/g, "inglés"],
+      [/\bInformacion\b/g, "Información"],
+      [/\binformacion\b/g, "información"],
+      [/\bIntegracion\b/g, "Integración"],
+      [/\bintegracion\b/g, "integración"],
+      [/\binterrogacion\b/g, "interrogación"],
+      [/\bIntroduccion\b/g, "Introducción"],
+      [/\bintroduccion\b/g, "introducción"],
+      [/\bintencion\b/g, "intención"],
+      [/\bIrregularidades es comun\b/g, "Irregularidades es común"],
+      [/\bjapones\b/g, "japonés"],
+      [/\bJapones\b/g, "Japonés"],
+      [/\bleccion\b/g, "lección"],
+      [/\bLeccion\b/g, "Lección"],
+      [/\blinea\b/g, "línea"],
+      [/\blinguistico\b/g, "lingüístico"],
+      [/\bLinguistico\b/g, "Lingüístico"],
+      [/\blogica\b/g, "lógica"],
+      [/\bmas\b/g, "más"],
+      [/\bMas\b/g, "Más"],
+      [/\bmetodologia\b/g, "metodología"],
+      [/\bMetodologia\b/g, "Metodología"],
+      [/\bnumero\b/g, "número"],
+      [/\bNumeros\b/g, "Números"],
+      [/\bnumeros\b/g, "números"],
+      [/\bobjetivo\b/g, "objetivo"],
+      [/\bobjetos inanimados y cosas, e imasu .* ubicacion de cosas y personas\b/g, "objetos inanimados y cosas, e imasu (います) para personas y animales. Se aprende a describir la ubicación de cosas y personas."],
+      [/\boracion\b/g, "oración"],
+      [/\bOracion\b/g, "Oración"],
+      [/\borganizacion\b/g, "organización"],
+      [/\bpais\b/g, "país"],
+      [/\bpaises\b/g, "países"],
+      [/\bparticula\b/g, "partícula"],
+      [/\bParticula\b/g, "Partícula"],
+      [/\bparticulas\b/g, "partículas"],
+      [/\bParticulas\b/g, "Partículas"],
+      [/\bperdon\b/g, "perdón"],
+      [/\bpequena\b/g, "pequeña"],
+      [/\bpequeno\b/g, "pequeño"],
+      [/\bportugues\b/g, "portugués"],
+      [/\bPosicion\b/g, "Posición"],
+      [/\bposicion\b/g, "posición"],
+      [/\bpractica\b autonoma/g, "práctica autónoma"],
+      [/\bPractica guiada\b/g, "Práctica guiada"],
+      [/\bprecision\b/g, "precisión"],
+      [/\bPrecision\b/g, "Precisión"],
+      [/\bPresentacion\b/g, "Presentación"],
+      [/\bpresentacion\b/g, "presentación"],
+      [/\bprohibicion\b/g, "prohibición"],
+      [/\bproposito\b/g, "propósito"],
+      [/\bpronunciacion\b/g, "pronunciación"],
+      [/\bPronunciacion\b/g, "Pronunciación"],
+      [/\bpublicos\b/g, "públicos"],
+      [/\bque\b es/g, "qué es"],
+      [/\brazon\b/g, "razón"],
+      [/\bRaiz\b/g, "Raíz"],
+      [/\braiz\b/g, "raíz"],
+      [/\breconocera\b/g, "reconocerá"],
+      [/\bReconocera\b/g, "Reconocerá"],
+      [/\breflexion\b/g, "reflexión"],
+      [/\brelacion\b/g, "relación"],
+      [/\bRelacion\b/g, "Relación"],
+      [/\bretencion\b/g, "retención"],
+      [/\bSesion\b/g, "Sesión"],
+      [/\bsesion\b/g, "sesión"],
+      [/\bsi, asi es\b/g, "sí, así es"],
+      [/\bsi, como\b/g, "sí, como"],
+      [/\bsilaba\b/g, "sílaba"],
+      [/\bsilabas\b/g, "sílabas"],
+      [/\bsilabario fonetico\b/g, "silabario fonético"],
+      [/\bsilabico\b/g, "silábico"],
+      [/\bsimbolo\b/g, "símbolo"],
+      [/\bSituacion\b/g, "Situación"],
+      [/\bsituacion\b/g, "situación"],
+      [/\bsolida\b/g, "sólida"],
+      [/\bTambien\b/g, "También"],
+      [/\btambien\b/g, "también"],
+      [/\btecnica\b/g, "técnica"],
+      [/\btecnologico\b/g, "tecnológico"],
+      [/\bteoria\b/g, "teoría"],
+      [/\bTeoria\b/g, "Teoría"],
+      [/\btipico\b/g, "típico"],
+      [/\btranscripcion\b/g, "transcripción"],
+      [/\bubicacion\b/g, "ubicación"],
+      [/\butilizara\b/g, "utilizará"],
+      [/\bUtilizara\b/g, "Utilizará"],
+      [/\bunicamente\b/g, "únicamente"],
+      [/\bvision\b/g, "visión"],
+      [/\bVision\b/g, "Visión"],
+      [/\bvocalica\b/g, "vocálica"],
+      [/\bteorica y practica\b/g, "teórica y práctica"],
+      [/\bQué es esto\?/g, "¿Qué es esto?"],
+      [/\bQue es esto\?/g, "¿Qué es esto?"],
+      [/\bQue es eso\?/g, "¿Qué es eso?"],
+      [/\bDonde esta el baño\?/g, "¿Dónde está el baño?"],
+      [/\bDonde esta la escuela\?/g, "¿Dónde está la escuela?"],
+      [/\bA donde vas\?/g, "¿A dónde vas?"],
+      [/\bEres estudiante\?/g, "¿Eres estudiante?"],
+      [/\bEres profesor\?/g, "¿Eres profesor?"],
+      [/\bAquello es una escuela\?/g, "¿Aquello es una escuela?"],
+      [/\bCual\b/g, "Cuál"],
+      [/\bcual\b/g, "cuál"],
+      [/\bPor que\b/g, "Por qué"],
+      [/\bpor que\b/g, "por qué"]
+    ];
+
+    if (typeof value === "string") {
+      return replacements.reduce(function (text, entry) {
+        return text.replace(entry[0], entry[1]);
+      }, value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map(normalizeJaponesN5Text);
+    }
+
+    if (value && typeof value === "object") {
+      return Object.keys(value).reduce(function (acc, key) {
+        acc[key] = normalizeJaponesN5Text(value[key]);
+        return acc;
+      }, {});
+    }
+
+    return value;
+  }
+
   const classModules = createClassModules([
     {
       title: "Introduccion al japones + sistema de escritura",
@@ -848,13 +1040,15 @@ function createJaponesN5Modules() {
     },
     {
       title: "Demostrativos (kore, sore, are)",
-      description: "Sistema de demostrativos japoneses en tres niveles de distancia: ko- (cerca del hablante), so- (cerca del oyente) y a- (lejos de ambos). Abarca kore/sore/are, koko/soko/asoko y kono/sono/ano.",
-      topics: ["Kore / sore / are (esto / eso / aquello)", "Koko / soko / asoko (aqui / ahi / alla)", "Kono / sono / ano + sustantivo", "Dore? Doko? Dono? (interrogativos)", "Practica con objetos en el aula", "Diferencia con adjetivos demostrativos"]
+      description: "Uso de これ, それ y あれ para senalar objetos segun su distancia con respecto al hablante y al oyente. Incluye estructura basica, preguntas con なんですか e integracion con particulas y posesivos.",
+      content: "## Objetivo de la clase\n\nAl finalizar esta clase, el estudiante comprendera y utilizara correctamente los demostrativos これ, それ y あれ, diferenciando su uso segun la distancia y aplicandolos en oraciones simples.\n\n## Introduccion a los demostrativos\n\nLos demostrativos en japones permiten senalar objetos dependiendo de su ubicacion respecto al hablante y al oyente. A diferencia del espanol, el japones distingue tres niveles de distancia, lo que aporta mayor precision en la comunicacion.\n\nEstos tres niveles son:\n\n- Cerca del hablante\n- Cerca del oyente\n- Lejos de ambos\n\n## Demostrativos basicos\n\n- これ (kore) -> esto, cerca del hablante\n- それ (sore) -> eso, cerca del oyente\n- あれ (are) -> aquello, lejos de ambos\n\n## Uso en oraciones\n\nEstructura:\n\n- これ / それ / あれ は B です\n\nEjemplos:\n\n- これは ほんです -> Esto es un libro\n- それは みずです -> Eso es agua\n- あれは がっこうです -> Aquello es una escuela\n\n## Preguntas con demostrativos\n\nPara preguntar por objetos, se utiliza la estructura:\n\n- これは なんですか\n\nEjemplos:\n\n- これは なんですか -> Que es esto?\n- それは なんですか -> Que es eso?\n\n## Diferencia clave\n\n- これ -> el objeto esta cerca de quien habla\n- それ -> el objeto esta cerca de quien escucha\n- あれ -> el objeto esta lejos de ambos\n\nEsta distincion es fundamental en japones y se utiliza constantemente en la comunicacion cotidiana.\n\n## Integracion con contenidos previos\n\nSe pueden combinar demostrativos con particulas y estructuras aprendidas:\n\n- これは わたしの ほんです -> Este es mi libro\n- あれは がっこうですか -> Aquello es una escuela?\n\n## Ejercicios guiados\n\nEJ:: Ejercicio 1: Seleccion. Elige la opcion correcta. Objeto cerca del hablante: a) それ, b) あれ, c) これ. Objeto lejos de ambos: a) あれ, b) これ, c) それ.\n\nEJ:: Ejercicio 2: Traduccion. Traduce: これは ほんです. あれは がっこうです.\n\nEJ:: Ejercicio 3: Completar. Completa: ______ は なんですか. それは ______ です.\n\n## Ejercicios autonomos\n\n- Escribe 5 oraciones usando これ, それ y あれ.\n- Formula 3 preguntas con なんですか.\n- Practica describiendo objetos a tu alrededor.",
+      topics: ["Demostrativos これ, それ y あれ", "Distancia respecto al hablante y al oyente", "Oraciones con は B です", "Preguntas con なんですか", "Integracion con posesivos y particulas", "Practica guiada y autonoma"]
     },
     {
       title: "Existencia (arimasu / imasu)",
-      description: "Los dos verbos de existencia en japones: arimasu (あります) para objetos inanimados y cosas, e imasu (います) para personas y animales. Se aprende a describir la ubicacion de cosas y personas.",
-      topics: ["Arimasu: existencia de objetos", "Imasu: existencia de seres vivos", "Particula ni para ubicacion", "Posiciones: ue, shita, mae, ushiro, naka, tonari", "Preguntas de ubicacion", "Frases: tsukue no ue ni hon ga arimasu"]
+      description: "Uso de あります y います para expresar existencia y ubicación en japonés. Se distingue entre objetos inanimados y seres vivos, y se introduce la partícula に para señalar el lugar donde algo o alguien está.",
+      content: "## Objetivo de la clase\n\nAl finalizar esta clase, el estudiante comprenderá y utilizará correctamente los verbos あります y います para expresar existencia y ubicación de objetos, animales y personas en japonés.\n\n## Introducción a la existencia en japonés\n\nEn japonés, existen dos verbos diferentes para expresar haber, estar o existir, dependiendo de si aquello que existe es animado o inanimado.\n\nEsta distinción es muy importante y aparece constantemente en conversaciones cotidianas.\n\n- あります -> objetos y cosas inanimadas\n- います -> personas y seres vivos\n\n## Verbo あります\n\nUso:\n\nSe utiliza para:\n\n- objetos\n- lugares\n- cosas inanimadas\n\nEstructura básica:\n\n- A は B に あります\n\nEjemplos:\n\n- ほんは つくえに あります -> El libro está en la mesa\n- がっこうは ここに あります -> La escuela está aquí\n\n## Verbo います\n\nUso:\n\nSe utiliza para:\n\n- personas\n- animales\n- seres vivos\n\nEstructura básica:\n\n- A は B に います\n\nEjemplos:\n\n- せんせいは きょうしつに います -> El profesor está en el salón\n- ねこは いえに います -> El gato está en la casa\n\n## Partícula に en existencia\n\nEn estas estructuras, に indica el lugar donde algo o alguien existe.\n\nEjemplo:\n\n- みずは れいぞうこに あります -> El agua está en el refrigerador\n\n## Diferencia entre あります e います\n\n- あります -> objetos y cosas\n- います -> personas y seres vivos\n\nComparación:\n\n- ほんが あります -> Hay un libro\n- ねこが います -> Hay un gato\n\n## Preguntar existencia\n\nEstructuras:\n\n- A は どこに ありますか -> ¿Dónde está A?\n- A は どこに いますか -> ¿Dónde está A?\n\nEjemplos:\n\n- トイレは どこに ありますか -> ¿Dónde está el baño?\n- 田中さんは どこに いますか -> ¿Dónde está Tanaka?\n\n## Introducción a が\n\nEn expresiones de existencia, frecuentemente aparece la partícula が marcando aquello que existe.\n\nEjemplo:\n\n- ねこが います -> Hay un gato\n\nEn esta etapa basta con reconocer que が suele acompañar expresiones de existencia.\n\n## Ejemplos integrados\n\n- わたしの ほんは つくえに あります -> Mi libro está en la mesa\n- せんせいは がっこうに います -> El profesor está en la escuela\n- いぬが いますか -> ¿Hay un perro?\n\n## Ejercicios guiados\n\nEJ:: Ejercicio 1: Selección. Elige la opción correcta. Para personas se usa: a) あります, b) います. Para objetos se usa: a) あります, b) います.\n\nEJ:: Ejercicio 2: Traducción. Traduce: ほんは つくえに あります. ねこは いえに います.\n\nEJ:: Ejercicio 3: Completar. Completa con あります o います: いぬが ______. ほんが ______. せんせいは きょうしつに ______.\n\n## Ejercicios autónomos\n\n- Escribe 5 oraciones con あります.\n- Escribe 5 oraciones con います.\n- Formula 3 preguntas usando どこに.\n- Describe objetos y personas de tu entorno.",
+      topics: ["Uso de あります e います", "Existencia de objetos y seres vivos", "Partícula に para ubicación", "Diferencia entre あります e います", "Preguntas con どこに", "Introducción a が en expresiones de existencia"]
     },
     {
       id: "mini-examen-2",
@@ -865,8 +1059,9 @@ function createJaponesN5Modules() {
     },
     {
       title: "Katakana (parte 1)",
-      description: "Primeros 25 caracteres del silabario katakana: vocales y filas k, s, t, n. Se explica cuando usar katakana (palabras extranjeras, enfasis, onomatopeyas) y se practica lectura de marcas y nombres.",
-      topics: ["Vocales katakana: a i u e o", "Filas k, s, t, n en katakana", "Uso del katakana", "Palabras de origen extranjero", "Lectura de marcas internacionales", "Comparacion con hiragana equivalente"]
+      description: "Reconocimiento, lectura y escritura de las vocales y las columnas K, S y T del katakana, con enfoque en su uso para palabras extranjeras, nombres, tecnología y énfasis visual.",
+      content: "## Objetivo de la clase\n\nAl finalizar esta clase, el estudiante reconocerá, leerá y escribirá las vocales y las primeras columnas del katakana, comprendiendo su función principal dentro del idioma japonés y diferenciándolo del hiragana.\n\n## Introducción al katakana\n\nEl katakana es uno de los sistemas de escritura del japonés y, al igual que el hiragana, funciona como un silabario fonético. Cada carácter representa una sílaba específica.\n\nSin embargo, su uso es diferente. El katakana se utiliza principalmente para:\n\n- palabras extranjeras\n- nombres extranjeros\n- marcas y tecnología\n- onomatopeyas\n- énfasis visual\n\nEjemplos:\n\n- コンピュータ -> computadora\n- コーヒー -> café\n\n## Diferencia visual entre hiragana y katakana\n\nAunque ambos sistemas representan los mismos sonidos, el katakana tiene una apariencia más recta y angular.\n\nComparación:\n\n- a: あ / ア\n- i: い / イ\n- u: う / ウ\n- e: え / エ\n- o: お / オ\n\nEl sonido es el mismo; solo cambia la escritura y el uso.\n\n## Vocales en katakana\n\n- ア -> a\n- イ -> i\n- ウ -> u\n- エ -> e\n- オ -> o\n\n## Columna K (カ行)\n\n- カ -> ka\n- キ -> ki\n- ク -> ku\n- ケ -> ke\n- コ -> ko\n\nEjemplos:\n\n- ケーキ -> keeki (pastel)\n- コーヒー -> koohii (café)\n\n## Columna S (サ行)\n\n- サ -> sa\n- シ -> shi\n- ス -> su\n- セ -> se\n- ソ -> so\n\nIgual que en hiragana:\n\n- シ = shi\n\n## Columna T (タ行)\n\n- タ -> ta\n- チ -> chi\n- ツ -> tsu\n- テ -> te\n- ト -> to\n\nIgual que en hiragana:\n\n- チ = chi\n- ツ = tsu\n\n## Uso práctico del katakana\n\nMuchas palabras modernas en japonés provienen de otros idiomas y se escriben en katakana.\n\nEjemplos comunes:\n\n- テレビ -> terebi -> television\n- スマホ -> sumaho -> smartphone\n- カメラ -> kamera -> camera\n- ホテル -> hoteru -> hotel\n\n## Vocal larga en katakana\n\nEn katakana se utiliza el símbolo ー para alargar vocales.\n\nEjemplos:\n\n- コーヒー -> koohii\n- ケーキ -> keeki\n\nLa línea prolonga el sonido anterior.\n\n## Ejercicios guiados\n\nEJ:: Ejercicio 1: Identificación. Indica la pronunciación: ア -> ______. シ -> ______. ツ -> ______. コ -> ______.\n\nEJ:: Ejercicio 2: Relación. Relaciona: テレビ -> ______. カメラ -> ______. ホテル -> ______. Opciones: a) hotel, b) televisión, c) cámara.\n\nEJ:: Ejercicio 3: Escritura. Escribe en katakana: ka, shi, to, su.\n\n## Ejercicios autónomos\n\n- Practica cada carácter al menos 10 veces.\n- Busca 5 palabras extranjeras escritas en katakana.\n- Practica lectura en voz alta de palabras simples.",
+      topics: ["Vocales en katakana", "Columnas K, S y T", "Diferencia visual entre hiragana y katakana", "Uso del katakana en palabras extranjeras", "Vocal larga con ー", "Lectura y escritura básica en katakana"]
     },
     {
       title: "Katakana (parte 2)",
@@ -1040,9 +1235,11 @@ function createJaponesN5Modules() {
     }
   ]);
 
+  const normalizedClassModules = normalizeJaponesN5Text(classModules);
+
   const classModulesWithImage = (function () {
     var classCounter = 0;
-    return classModules.map(function (moduleItem) {
+    return normalizedClassModules.map(function (moduleItem) {
       const isSpecialModule = /^(Mini\s*examen|Examen\s*final)/i.test(moduleItem.title || "");
       if (!isSpecialModule) classCounter++;
       const num = isSpecialModule ? "00" : String(classCounter).padStart(2, "0");
@@ -1054,7 +1251,7 @@ function createJaponesN5Modules() {
     });
   })();
 
-  return [
+  return normalizeJaponesN5Text([
     {
       id: "sobre-el-curso",
       title: "Sobre el Curso",
@@ -1064,7 +1261,7 @@ function createJaponesN5Modules() {
         "## Introduccion al curso de japones N5\n\nBienvenido al curso de japones nivel N5, un programa disenado para quienes desean iniciar su aprendizaje del idioma japones desde cero mediante una estructura progresiva, clara y orientada a la comprension real del idioma. Este curso tiene como proposito desarrollar las bases fundamentales del japones, integrando escritura, gramatica, vocabulario y comprension en un proceso coherente y acumulativo.\n\nEl nivel N5 corresponde al primer nivel del examen internacional JLPT (Japanese-Language Proficiency Test). En este nivel, el estudiante logra comprender expresiones cotidianas, identificar estructuras basicas y construir oraciones simples. En consecuencia, el enfoque del curso no se limita a la memorizacion, sino que prioriza la comprension del funcionamiento del idioma para su aplicacion en contextos reales.\n\nEl curso se compone de 42 clases organizadas por temas especificos. Cada clase desarrolla un concepto principal y, cuando es necesario, incorpora contenidos complementarios para fortalecer la coherencia del aprendizaje. A lo largo del proceso, el estudiante avanza desde el reconocimiento de los sistemas de escritura hasta la construccion de ideas completas en japones.\n\n## Objetivos del curso\n\nAl finalizar el curso, el estudiante estara en capacidad de:\n\n- Reconocer y utilizar los sistemas de escritura hiragana y katakana de forma fluida.\n- Comprender y aplicar las principales estructuras gramaticales del nivel N5.\n- Manejar un vocabulario basico de uso cotidiano (aproximadamente 600-800 palabras).\n- Construir oraciones simples en presente y pasado, tanto afirmativas como negativas.\n- Comprender preguntas basicas y formular respuestas adecuadas en contextos comunes.\n- Identificar y usar particulas fundamentales del japones (wa, no, wo, ni, de, entre otras).\n- Leer y comprender textos breves adaptados al nivel inicial.\n- Reconocer y utilizar kanji basicos asociados a numeros, tiempo y acciones frecuentes.\n- Desarrollar habilidades iniciales de comprension auditiva en situaciones cotidianas.\n- Prepararse de manera estructurada para presentar el examen JLPT N5.\n\n## Metodologia\n\nEl curso se desarrolla bajo un enfoque progresivo que integra teoria y practica en cada sesion. Cada clase se estructura en cuatro momentos: explicacion conceptual, desarrollo de ejemplos, ejercicios guiados y practica autonoma. Esta organizacion permite que el estudiante no solo comprenda los contenidos, sino que los aplique de manera inmediata.\n\nAdemas, el aprendizaje se refuerza mediante evaluaciones periodicas. Cada siete clases se realiza un mini examen orientado a consolidar los conocimientos adquiridos, mientras que al final del curso se presenta una evaluacion integral que articula todas las competencias desarrolladas. Este sistema favorece la retencion del contenido y permite identificar avances y aspectos por mejorar.\n\nPor otro lado, el curso incorpora elementos de repeticion espaciada, exposicion gradual al vocabulario y practica contextualizada. En general, se busca que el estudiante construya una base solida que le permita avanzar de forma autonoma hacia niveles superiores del idioma, manteniendo un equilibrio entre rigor conceptual y accesibilidad.",
       topics: ["Hiragana y katakana", "Gramatica N5", "100 kanji basicos", "Vocabulario 600-800 palabras", "Preparacion JLPT N5", "Metodologia progresiva"]
     }
-  ].concat(classModulesWithImage);
+  ]).concat(classModulesWithImage);
 }
 
 window.PORTFOLIO_DATA = {

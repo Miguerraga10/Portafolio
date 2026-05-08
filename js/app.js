@@ -160,22 +160,6 @@ function createGeneratedClassImage(token) {
   const palette = getClassPalette(num, sourceName);
   const hueA = palette.hueA;
   const hueB = palette.hueB;
-  const sourceDisplayName = normalizeClassDisplayName(sourceName);
-  const isGenericSourceName = /^(Estadistica\s*2|Metodos\s*numericos|Calculo\s*multivariable|Japones\s*N5)$/i.test(sourceDisplayName);
-  const displayName = sourceDisplayName && !isGenericSourceName ? sourceDisplayName : fullName;
-  const escapedName = escapeXml(displayName);
-  const lines = splitTitleLines(escapedName, 20, 4);
-  const line1 = lines[0] || "Clase " + classNo;
-  const line2 = lines[1] || "";
-  const line3 = lines[2] || "";
-  const line4 = lines[3] || "";
-  const longestLine = Math.max(line1.length, line2.length, line3.length, line4.length);
-  const titleSize = longestLine > 19 ? 44 : (longestLine > 15 ? 48 : 52);
-  const lineGap = titleSize + 10;
-  const y1 = 300;
-  const y2 = y1 + lineGap;
-  const y3 = y2 + lineGap;
-  const y4 = y3 + lineGap;
   const motif = getClassMotifSvg(num, sourceName);
   const extraIcons = getClassExtraIconsSvg(num, sourceName, !!practiceMatch);
   const svg =
@@ -200,15 +184,7 @@ function createGeneratedClassImage(token) {
     "<path d='M92,575 C260,495 386,640 566,558 C760,472 892,630 1118,520' stroke='rgba(255,255,255,0.38)' stroke-width='3' fill='none' opacity='0.5'/>" +
     motif +
     extraIcons +
-    "<rect x='84' y='100' width='670' height='410' rx='24' fill='rgba(7,12,21,0.56)' stroke='rgba(255,255,255,0.28)' stroke-width='2' filter='url(#cardShadow)'/>" +
-    "<path d='M84,124 a24,24 0 0 1 24,-24 h70' stroke='rgba(255,255,255,0.35)' stroke-width='3' fill='none'/>" +
-    "<path d='M730,510 h-78 a24,24 0 0 1 -24,24' stroke='rgba(255,255,255,0.24)' stroke-width='3' fill='none'/>" +
-    "<rect x='104' y='130' width='330' height='96' rx='16' fill='url(#bg)' opacity='0.98'/>" +
-    "<text x='130' y='194' fill='#eff6ff' font-family='Sora, Segoe UI, Arial, sans-serif' font-size='52' font-weight='820'>" + escapeXml(badgeLabel) + "</text>" +
-    "<text x='122' y='" + y1 + "' fill='#eff6ff' font-family='Sora, Segoe UI, Arial, sans-serif' font-size='" + titleSize + "' font-weight='760'>" + line1 + "</text>" +
-    (line2 ? "<text x='122' y='" + y2 + "' fill='#d8e6f8' font-family='Sora, Segoe UI, Arial, sans-serif' font-size='" + titleSize + "' font-weight='660'>" + line2 + "</text>" : "") +
-    (line3 ? "<text x='122' y='" + y3 + "' fill='#c3d8f1' font-family='Sora, Segoe UI, Arial, sans-serif' font-size='" + titleSize + "' font-weight='620'>" + line3 + "</text>" : "") +
-    (line4 ? "<text x='122' y='" + y4 + "' fill='#b8d0ee' font-family='Sora, Segoe UI, Arial, sans-serif' font-size='" + titleSize + "' font-weight='600'>" + line4 + "</text>" : "") +
+    "<path d='M88,182 H340' stroke='rgba(255,255,255,0.28)' stroke-width='3' stroke-linecap='round'/>" +
     "</svg>";
   return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
@@ -220,22 +196,22 @@ function isJaponesN5Source(sourceName) {
 
 function getJaponesN5Palette(num) {
   var palettes = [
-    { hueA: 355, hueB: 330 },
-    { hueA: 8,   hueB: 340 },
-    { hueA: 345, hueB: 5   },
-    { hueA: 0,   hueB: 320 },
-    { hueA: 15,  hueB: 350 },
-    { hueA: 350, hueB: 290 },
-    { hueA: 5,   hueB: 335 }
+    { hueA: 206, hueB: 188 },
+    { hueA: 214, hueB: 196 },
+    { hueA: 198, hueB: 176 },
+    { hueA: 222, hueB: 190 },
+    { hueA: 192, hueB: 170 },
+    { hueA: 210, hueB: 182 },
+    { hueA: 200, hueB: 186 }
   ];
   var idx = num === 0 ? 0 : (num - 1) % palettes.length;
   return palettes[idx];
 }
 
 function getJaponesN5MotifSvg(num) {
-  var s = "rgba(255,215,220,0.82)";
-  var t = "rgba(255,170,185,0.50)";
-  var b = "rgba(255,245,248,0.92)";
+  var s = "rgba(182,224,255,0.82)";
+  var t = "rgba(95,176,255,0.50)";
+  var b = "rgba(241,248,255,0.92)";
   var motifType = num === 0 ? 7 : (num - 1) % 7;
   switch (motifType) {
     case 0: // Torii gate
@@ -761,7 +737,7 @@ function renderCourseCatalogs() {
   container.innerHTML = "";
 
   if (!Array.isArray(DATA.coursesCatalogs) || !DATA.coursesCatalogs.length) {
-    container.appendChild(el("p", "muted", "No hay catalogos de cursos disponibles."));
+    container.appendChild(el("p", "muted", "No hay catálogos de cursos disponibles."));
     appendLoadWarning(container);
     return;
   }
@@ -777,7 +753,7 @@ function renderCourseCatalogs() {
     img.alt = catalog.title;
     img.className = "card-img";
 
-    const btn = el("button", "btn ghost", "Ver catalogo");
+    const btn = el("button", "btn ghost", "Ver catálogo");
     btn.addEventListener("click", function () {
       window.location.href = "catalog.html?area=" + encodeURIComponent(catalog.id);
     });
@@ -855,8 +831,8 @@ function renderCatalogCoursesPage() {
 
   container.innerHTML = "";
   if (!catalog) {
-    if (titleNode) titleNode.textContent = "Catalogo no encontrado";
-    container.appendChild(el("p", "muted", "No se encontro el area solicitada."));
+    if (titleNode) titleNode.textContent = "Catálogo no encontrado";
+    container.appendChild(el("p", "muted", "No se encontró el área solicitada."));
     return;
   }
 
@@ -924,7 +900,7 @@ function renderCatalogCoursesPage() {
       return;
     }
 
-    const status = el("p", "course-status", "Proximamente");
+    const status = el("p", "course-status", "Próximamente");
     const disabledBtn = document.createElement("button");
     disabledBtn.className = "btn ghost";
     disabledBtn.type = "button";
@@ -954,12 +930,12 @@ function renderCoursePage() {
 
   if (result.locked) {
     root.innerHTML = "";
-    root.appendChild(el("h2", null, "Curso no habilitado aun"));
-    root.appendChild(el("p", "muted", "Este curso estara disponible cuando lo publique."));
+    root.appendChild(el("h2", null, "Curso no habilitado aún"));
+    root.appendChild(el("p", "muted", "Este curso estará disponible cuando lo publique."));
     const back = document.createElement("a");
     back.className = "btn ghost";
     back.href = "catalog.html?area=" + encodeURIComponent(result.catalog.id);
-    back.textContent = "Volver al catalogo";
+    back.textContent = "Volver al catálogo";
     root.appendChild(back);
     return;
   }
@@ -971,13 +947,13 @@ function renderCoursePage() {
   const modulesNode = document.getElementById("course-modules");
 
   if (titleNode) titleNode.textContent = result.course.title;
-  if (subtitleNode) subtitleNode.textContent = "Area: " + result.catalog.title;
+  if (subtitleNode) subtitleNode.textContent = "Área: " + result.catalog.title;
   if (backLink) backLink.href = "catalog.html?area=" + encodeURIComponent(result.catalog.id);
 
   if (heroNode) {
     heroNode.dataset.courseId = result.course.id || "";
     heroNode.style.backgroundImage =
-      "linear-gradient(180deg, rgba(6,8,12,0.15), rgba(6,8,12,0.8)), url('" +
+      "linear-gradient(180deg, rgba(6,8,12,0.04), rgba(6,8,12,0.22)), url('" +
       imagePath(result.course.image || result.catalog.image) +
       "')";
   }
@@ -985,7 +961,7 @@ function renderCoursePage() {
   if (modulesNode) {
     modulesNode.innerHTML = "";
     (result.course.modules || []).forEach(function (moduleData, index) {
-      const card = el("a", "card reveal-card card-link");
+      const card = el("a", "card reveal-card card-link course-module-card");
       card.style.animationDelay = index * 90 + "ms";
       card.href =
         "lesson.html?area=" +
@@ -996,22 +972,31 @@ function renderCoursePage() {
         encodeURIComponent(moduleData.id);
 
       if (moduleData.image) {
+        const imageWrap = el("div", "course-module-image-wrap");
+
         const img = document.createElement("img");
         img.src = imagePath(moduleData.image);
         img.alt = moduleData.title;
-        img.className = "card-img";
-        card.appendChild(img);
+        img.className = "card-img course-module-image";
+        imageWrap.appendChild(img);
+
+        const headingWrap = el("div", "course-module-heading course-module-heading--overlay");
+        const title = el("h3", "card-title course-module-title", moduleData.title);
+        const copy = el("p", "card-copy module-subtitle course-module-subtitle", moduleData.subtitle);
+        headingWrap.appendChild(title);
+        if (moduleData.subtitle) headingWrap.appendChild(copy);
+        imageWrap.appendChild(headingWrap);
+
+        card.appendChild(imageWrap);
         card.setAttribute("aria-label", (moduleData.title || "") + (moduleData.subtitle ? ": " + moduleData.subtitle : ""));
 
         const topicBox = el("div", "module-topic-box");
-        const topicTitle = el("p", "module-topic-title", "Temas de la clase");
-        const topicList = el("ul", "module-topic-list");
-        (moduleData.topics || []).forEach(function (topic) {
-          const li = el("li");
-          li.innerHTML = topic;
-          topicList.appendChild(li);
+        const topicList = document.createElement("ul");
+        topicList.className = "module-topic-list";
+        const compactTopics = buildCompactTopicItems(moduleData.topics, 3);
+        compactTopics.forEach(function (topic) {
+          topicList.appendChild(el("li", null, topic));
         });
-        topicBox.appendChild(topicTitle);
         topicBox.appendChild(topicList);
         card.appendChild(topicBox);
       } else {
@@ -1041,6 +1026,51 @@ function pickRandomItems(items, count) {
   var shuffled = shuffleExerciseArray(items || []);
   var safeCount = Math.max(0, Math.min(count || shuffled.length, shuffled.length));
   return shuffled.slice(0, safeCount);
+}
+
+function compactTopicLabel(topic) {
+  var label = String(topic || "").trim();
+  if (!label) return "";
+
+  label = label.replace(/\s*\([^)]*\)/g, "").trim();
+
+  if (label.indexOf(":") !== -1) {
+    label = label.split(":")[0].trim();
+  }
+
+  if (label.indexOf(" para ") !== -1) {
+    label = label.split(" para ")[0].trim();
+  }
+
+  if (label.indexOf(" con ") !== -1 && label.length > 22) {
+    label = label.split(" con ")[0].trim();
+  }
+
+  if (label.indexOf("->") !== -1) {
+    label = label.split("->")[0].trim();
+  }
+
+  if (label.indexOf("/") !== -1 && label.length > 24) {
+    label = label.split("/")[0].trim();
+  }
+
+  if (label.length > 34) {
+    label = label.slice(0, 34).trim() + "...";
+  }
+
+  return label;
+}
+
+function buildCompactTopicItems(topics, maxItems) {
+  var normalized = [];
+
+  (topics || []).forEach(function (topic) {
+    var compact = compactTopicLabel(topic);
+    if (!compact) return;
+    if (normalized.indexOf(compact) === -1) normalized.push(compact);
+  });
+
+  return normalized.slice(0, maxItems || 3);
 }
 
 function resolveExerciseConfig(config) {
@@ -1079,7 +1109,7 @@ function resolveExerciseConfig(config) {
 function createDragExercise(config) {
   config = resolveExerciseConfig(config);
   var wrap = document.createElement("div");
-  wrap.className = "drag-exercise";
+  wrap.className = "drag-exercise drag-exercise--" + (config.type || "generic");
   wrap.appendChild(el("h5", "drag-exercise__title", config.title || ""));
   if (config.instruction) wrap.appendChild(el("p", "drag-exercise__instruction", config.instruction));
 
@@ -1218,6 +1248,8 @@ function createDragExercise(config) {
 
   } else if (config.type === "choice") {
     if (config.word) wrap.appendChild(el("div", "drag-choice-word", config.word));
+    var questionGrid = document.createElement("div");
+    questionGrid.className = "drag-question-grid";
     var selections = {};
     config.questions.forEach(function (q, qi) {
       var qWrap = document.createElement("div");
@@ -1236,8 +1268,9 @@ function createDragExercise(config) {
         opts.appendChild(optEl);
       });
       qWrap.appendChild(opts);
-      wrap.appendChild(qWrap);
+      questionGrid.appendChild(qWrap);
     });
+    wrap.appendChild(questionGrid);
     validateBtn.addEventListener("click", function () {
       var allOk = true; var missing = false;
       var qWraps = wrap.querySelectorAll(".drag-question");
@@ -1395,6 +1428,119 @@ function createExamExercise(config) {
   return wrap;
 }
 
+function appendLessonContentNode(parentNode, block) {
+  if (block.indexOf("## ") === 0) {
+    const h4 = el("h4", "lesson-subheading", block.replace(/^##\s*/, ""));
+    parentNode.appendChild(h4);
+    return;
+  }
+
+  const isStandaloneMath =
+    /^\$\$[\s\S]*\$\$$/.test(block) ||
+    /^\\\[[\s\S]*\\\]$/.test(block);
+
+  if (isStandaloneMath) {
+    const formulaWrap = el("div", "lesson-formula-block");
+    formulaWrap.textContent = block;
+    parentNode.appendChild(formulaWrap);
+    return;
+  }
+
+  if (block.indexOf("DEF::") === 0) {
+    const box = el("div", "lesson-def-box");
+    const body = block.replace(/^DEF::\s*/, "");
+    const p = el("p", null, body);
+    box.appendChild(p);
+    parentNode.appendChild(box);
+    return;
+  }
+
+  if (block.indexOf("EJ::") === 0) {
+    const details = document.createElement("details");
+    details.className = "lesson-exercise-box";
+
+    const summary = document.createElement("summary");
+    summary.textContent = "Ejercicio propuesto";
+
+    const body = block.replace(/^EJ::\s*/, "");
+    const p = el("p", null, body);
+
+    details.appendChild(summary);
+    details.appendChild(p);
+    parentNode.appendChild(details);
+    return;
+  }
+
+  if (block.indexOf("EXAM::") === 0) {
+    try {
+      var examConfig = JSON.parse(block.replace(/^EXAM::\s*/, ""));
+      parentNode.appendChild(createExamExercise(examConfig));
+    } catch (examErr) {
+      // Ignore malformed EXAM blocks
+    }
+    return;
+  }
+
+  if (block.indexOf("DRAG::") === 0) {
+    try {
+      var dragConfig = JSON.parse(block.replace(/^DRAG::\s*/, ""));
+      parentNode.appendChild(createDragExercise(dragConfig));
+    } catch (dragErr) {
+      // Ignore malformed DRAG blocks
+    }
+    return;
+  }
+
+  if (/^(?:-\s+.+\n?)+$/.test(block)) {
+    const list = el("ul", "lesson-bullets");
+    const items = block.split("\n").map(function (line) {
+      return line.replace(/^-\s+/, "").trim();
+    }).filter(Boolean);
+
+    const isCompactList = items.length >= 3 && items.every(function (itemText) {
+      return itemText.length <= 52;
+    });
+    const isCenteredCompactList = isCompactList && items.every(function (itemText) {
+      return /(?:=|->)/.test(itemText) || itemText.length <= 20;
+    });
+
+    if (isCompactList) list.classList.add("lesson-bullets--compact");
+    if (isCenteredCompactList) list.classList.add("lesson-bullets--centered");
+
+    items.forEach(function (itemText) {
+      list.appendChild(el("li", null, itemText));
+    });
+    parentNode.appendChild(list);
+    return;
+  }
+
+  const p = el("p", null, block);
+  parentNode.appendChild(p);
+}
+
+function renderLessonBlocks(contentNode, blocks, useSectionLayout) {
+  var activeSection = null;
+
+  function ensureSection() {
+    if (!useSectionLayout) return contentNode;
+    if (activeSection) return activeSection;
+    activeSection = el("section", "lesson-section lesson-section--intro");
+    contentNode.appendChild(activeSection);
+    return activeSection;
+  }
+
+  blocks.forEach(function (block) {
+    if (useSectionLayout && block.indexOf("## ") === 0) {
+      activeSection = el("section", "lesson-section");
+      contentNode.appendChild(activeSection);
+      appendLessonContentNode(activeSection, block);
+      return;
+    }
+
+    appendLessonContentNode(ensureSection(), block);
+  });
+}
+
 function renderLessonPage() {
   const root = document.getElementById("lesson-detail");
   if (!root) return;
@@ -1402,19 +1548,19 @@ function renderLessonPage() {
   const result = getLessonByParams();
   if (!result) {
     root.innerHTML = "";
-    root.appendChild(el("h2", null, "Leccion no encontrada"));
-    root.appendChild(el("p", "muted", "Verifica el enlace del modulo e intenta de nuevo."));
+    root.appendChild(el("h2", null, "Lección no encontrada"));
+    root.appendChild(el("p", "muted", "Verifica el enlace del módulo e intenta de nuevo."));
     return;
   }
 
   if (result.locked) {
     root.innerHTML = "";
-    root.appendChild(el("h2", null, "Curso no habilitado aun"));
-    root.appendChild(el("p", "muted", "Las lecciones de este curso todavia no estan publicadas."));
+    root.appendChild(el("h2", null, "Curso no habilitado aún"));
+    root.appendChild(el("p", "muted", "Las lecciones de este curso todavía no están publicadas."));
     const back = document.createElement("a");
     back.className = "btn ghost";
     back.href = "catalog.html?area=" + encodeURIComponent(result.catalog.id);
-    back.textContent = "Volver al catalogo";
+    back.textContent = "Volver al catálogo";
     root.appendChild(back);
     return;
   }
@@ -1429,7 +1575,10 @@ function renderLessonPage() {
   const contentNode = document.getElementById("lesson-content");
   const topicsNode = document.getElementById("lesson-topics");
   const backNode = document.getElementById("back-to-course");
+  const isJaponesN5Lesson = result.course && result.course.id === "japones-n5";
 
+  root.classList.toggle("lesson-detail--japones-n5", !!isJaponesN5Lesson);
+  if (contentNode) contentNode.classList.toggle("lesson-content--sectioned", !!isJaponesN5Lesson);
   if (titleNode) titleNode.textContent = result.module.title;
   if (subtitleNode) subtitleNode.textContent = result.module.subtitle || (result.course.title + " • " + result.catalog.title);
   if (headingNode) headingNode.textContent = result.module.subtitle || result.module.title;
@@ -1448,83 +1597,7 @@ function renderLessonPage() {
       })
       .filter(Boolean);
 
-    blocks.forEach(function (block) {
-      if (block.indexOf("## ") === 0) {
-        const h4 = el("h4", "lesson-subheading", block.replace(/^##\s*/, ""));
-        contentNode.appendChild(h4);
-        return;
-      }
-
-      const isStandaloneMath =
-        /^\$\$[\s\S]*\$\$$/.test(block) ||
-        /^\\\[[\s\S]*\\\]$/.test(block);
-
-      if (isStandaloneMath) {
-        const formulaWrap = el("div", "lesson-formula-block");
-        formulaWrap.textContent = block;
-        contentNode.appendChild(formulaWrap);
-        return;
-      }
-
-      if (block.indexOf("DEF::") === 0) {
-        const box = el("div", "lesson-def-box");
-        const body = block.replace(/^DEF::\s*/, "");
-        const p = el("p", null, body);
-        box.appendChild(p);
-        contentNode.appendChild(box);
-        return;
-      }
-
-      if (block.indexOf("EJ::") === 0) {
-        const details = document.createElement("details");
-        details.className = "lesson-exercise-box";
-
-        const summary = document.createElement("summary");
-        summary.textContent = "Ejercicio propuesto";
-
-        const body = block.replace(/^EJ::\s*/, "");
-        const p = el("p", null, body);
-
-        details.appendChild(summary);
-        details.appendChild(p);
-        contentNode.appendChild(details);
-        return;
-      }
-
-      if (block.indexOf("EXAM::") === 0) {
-        try {
-          var examConfig = JSON.parse(block.replace(/^EXAM::\s*/, ""));
-          contentNode.appendChild(createExamExercise(examConfig));
-        } catch (examErr) {
-          // Ignore malformed EXAM blocks
-        }
-        return;
-      }
-
-      if (block.indexOf("DRAG::") === 0) {
-        try {
-          var dragConfig = JSON.parse(block.replace(/^DRAG::\s*/, ""));
-          contentNode.appendChild(createDragExercise(dragConfig));
-        } catch (dragErr) {
-          // Ignore malformed DRAG blocks
-        }
-        return;
-      }
-
-      if (/^(?:-\s+.+\n?)+$/.test(block)) {
-        const list = el("ul", "lesson-bullets");
-        block.split("\n").forEach(function (line) {
-          const itemText = line.replace(/^-\s+/, "").trim();
-          if (!itemText) return;
-          list.appendChild(el("li", null, itemText));
-        });
-        contentNode.appendChild(list);
-        return;
-      }
-
-      const p = el("p", null, block);
-      contentNode.appendChild(p);
-    });
+    renderLessonBlocks(contentNode, blocks, isJaponesN5Lesson);
 
     if (result.module.id === "sobre-el-curso") {
       const outlineTitle = el("h4", "lesson-subheading", "Contenido del curso");
@@ -2065,22 +2138,10 @@ function initLanguageInteractions() {
       sectionTitle: "Idiomas e níveis",
       words: ["Ola", "Aprender", "Foco", "Disciplina", "Crescimento"],
       skills: [
-        { name: "Lectura", score: 47, level: "A2" },
-        { name: "Escucha", score: 46, level: "A2" },
-        { name: "Escritura", score: 39, level: "A2" },
-        { name: "Habla", score: 42, level: "A2" }
-      ]
-    },
-    it: {
-      label: "Italiano",
-      nativeName: "Italiano",
-      sectionTitle: "Lingue e livelli",
-      words: ["Ciao", "Studio", "Costanza", "Disciplina", "Crescita"],
-      skills: [
-        { name: "Lectura", score: 34, level: "A1" },
-        { name: "Escucha", score: 10, level: "A1" },
-        { name: "Escritura", score: 28, level: "A1" },
-        { name: "Habla", score: 30, level: "A1" }
+        { name: "Lectura", score: 47, level: "A1" },
+        { name: "Escucha", score: 46, level: "A1" },
+        { name: "Escritura", score: 39, level: "A1" },
+        { name: "Habla", score: 42, level: "A1" }
       ]
     }
   };
