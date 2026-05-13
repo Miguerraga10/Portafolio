@@ -1326,22 +1326,12 @@ window.PORTFOLIO_DATA = {
     {
       id: 1,
       title: "Sigma-Planner",
-      desc: "Software para generar el horario más óptimo para clases universitarias. Permite importar materias del SIA de la UNAL, definir intervalos libres y obtener combinaciones sin conflictos.",
+      desc: "Planificador académico para organizar horarios universitarios de forma simple y eficiente.",
       category: "Software",
       tech: ["Python", "JavaScript", "HTML", "CSS", "MongoDB"],
       repo: "https://github.com/miguerraga10/Sigma-Planner",
       demo: "Sigma-planner-web/sigma.html",
       image: "assets/Sigma-Planner.png"
-    },
-    {
-      id: 2,
-      title: "Quantaris",
-      desc: "Software para predecir movimientos de acciones de la bolsa de valores mediante modelos cuantitativos y análisis de series de tiempo.",
-      category: "Software",
-      tech: ["Python"],
-      repo: "",
-      demo: "",
-      image: ""
     }
   ]
 };

@@ -773,34 +773,21 @@ function renderLoadedMateriasCommon(){
   }
 
   function getTipoMateriaLabel(materia){
-    const tipologia = String(materia && materia.tipologia ? materia.tipologia : '').trim().toLowerCase();
-    if (!tipologia) return materia && materia.obligatoria ? 'Obligatoria' : 'Optativa';
-    if (tipologia.includes('fund') && tipologia.includes('optativa')) return 'Fund. optativa';
-    if (tipologia.includes('fund') && tipologia.includes('obligatoria')) return 'Fund. obligatoria';
-    if (tipologia.includes('disc') && tipologia.includes('obligatoria')) return 'Disc. obligatoria';
-    if (tipologia.includes('disc') && tipologia.includes('optativa')) return 'Disc. optativa';
-    if (tipologia.includes('libre')) return 'Libre elección';
-    if (tipologia.includes('nivel')) return 'Nivelación';
+    const tipologia = String(materia && materia.tipologia ? materia.tipologia : '').trim();
+    if (tipologia) return tipologia;
     return materia && materia.obligatoria ? 'Obligatoria' : 'Optativa';
   }
 
   const groupedSectionsMap = new Map();
   for (const materia of sortedList){
     const sectionTitle = getTipoMateriaLabel(materia);
-    if (!groupedSectionsMap.has(sectionTitle)) groupedSectionsMap.set(sectionTitle, []);
-    groupedSectionsMap.get(sectionTitle).push(materia);
+    const sectionKey = normalizeComparableText(sectionTitle) || sectionTitle;
+    if (!groupedSectionsMap.has(sectionKey)) {
+      groupedSectionsMap.set(sectionKey, { title: sectionTitle, items: [] });
+    }
+    groupedSectionsMap.get(sectionKey).items.push(materia);
   }
-  const sectionOrder = ['Fund. obligatoria', 'Fund. optativa', 'Disc. obligatoria', 'Disc. optativa', 'Libre elección', 'Nivelación', 'Obligatoria', 'Optativa'];
-  const groupedSections = Array.from(groupedSectionsMap.entries())
-    .sort((left, right) => {
-      const leftIdx = sectionOrder.indexOf(left[0]);
-      const rightIdx = sectionOrder.indexOf(right[0]);
-      const l = leftIdx === -1 ? Number.MAX_SAFE_INTEGER : leftIdx;
-      const r = rightIdx === -1 ? Number.MAX_SAFE_INTEGER : rightIdx;
-      if (l !== r) return l - r;
-      return left[0].localeCompare(right[0], 'es');
-    })
-    .map(([title, items]) => ({ title, items }));
+  const groupedSections = Array.from(groupedSectionsMap.values());
 
   if (!window.__collapsedMateriaFolders || window.__resetCollapsedMateriaFolders){
     window.__collapsedMateriaFolders = new Set(groupedSections.map(section => section.title));
@@ -921,17 +908,51 @@ function mergeMateriasLists(base, extra){
   return out;
 }
 
+function normalizeComparableText(value){
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function buildHistorialAprobadasLookup(aprobadas, resumen){
+  const dict = {};
+  const items = Array.isArray(aprobadas) ? aprobadas : [];
+  for (const item of items){
+    if (!item) continue;
+    const code = String(item).split(' - ')[0] || item;
+    const normalizedCode = String(code || '').trim().toLowerCase();
+    if (normalizedCode) dict[normalizedCode] = true;
+  }
+  dict.__names = items.map(item => {
+    if (!item) return '';
+    if (String(item).includes(' - ')) return normalizeComparableText(String(item).split(' - ', 2)[1]);
+    return normalizeComparableText(item);
+  }).filter(Boolean);
+  dict.__approvedCredits = Number(resumen && resumen.creditosAprobados) || 0;
+  return dict;
+}
+
 function cumplePrereqsJS(asignatura, materiasAprobadas){
   const prereqs = (asignatura && asignatura.prerequisitos) || [];
   const aprobadasKeys = Object.keys(materiasAprobadas || {});
   const aprobadasNames = (materiasAprobadas && materiasAprobadas.__names) || [];
+  const approvedCredits = Number(materiasAprobadas && materiasAprobadas.__approvedCredits) || 0;
   for (const prereq of prereqs){
+    const requiredCredits = Number(prereq && prereq.creditos) || 0;
+    if (requiredCredits > 0 && approvedCredits < requiredCredits) return false;
+
+    const asignaturas = Array.isArray(prereq && prereq.asignaturas) ? prereq.asignaturas : [];
+    const requiredCount = Number(prereq && prereq.cantidad) || 0;
+    if (!asignaturas.length && requiredCount === 0) continue;
+
     let cumple = 0;
-    for (const asig of (prereq.asignaturas || [])){
+    for (const asig of asignaturas){
       const codigo = String(asig.codigo || '').toLowerCase();
-      const nombre = String(asig.nombre || '').toLowerCase();
-      if (nombre.includes('inglés') || nombre.includes('ingles') || nombre.includes('virtual')){
-        if (aprobadasKeys.some(c=> c.toLowerCase().includes('ing')) || aprobadasNames.some(n=> n.includes('ingles') || n.includes('inglés') || n.includes('intensivo') || n.includes('virtual'))){
+      const nombre = normalizeComparableText(asig.nombre || '');
+      if (nombre.includes('ingles') || nombre.includes('virtual')){
+        if (aprobadasKeys.some(c=> c.toLowerCase().includes('ing')) || aprobadasNames.some(n=> n.includes('ingles') || n.includes('intensivo') || n.includes('virtual'))){
           cumple += 1;
           continue;
         }
@@ -939,7 +960,8 @@ function cumplePrereqsJS(asignatura, materiasAprobadas){
       if (codigo && materiasAprobadas[codigo]) cumple += 1;
     }
     if (prereq.isTodas){
-      if (cumple < (prereq.cantidad || 0)) return false;
+      const minRequired = requiredCount || asignaturas.length;
+      if (cumple < minRequired) return false;
     } else {
       if (cumple === 0) return false;
     }
@@ -2384,8 +2406,21 @@ async function loadRepoFromRepo(){
       .join(' ');
   }
 
+  function toTitleCaseLabel(value){
+    return String(value || '')
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(word => word.charAt(0).toLocaleUpperCase('es-CO') + word.slice(1).toLocaleLowerCase('es-CO'))
+      .join(' ');
+  }
+
   function formatCarreraLabel(value){
-    return String(value || '').trim();
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const match = raw.match(/^(\[[^\]]+\]|\S+)\s+(.+)$/);
+    if (!match) return toTitleCaseLabel(raw);
+    const [, code, name] = match;
+    return `${code} ${toTitleCaseLabel(name)}`;
   }
 
   function catalogValueMatches(selectedValue, candidateValue){
@@ -2525,7 +2560,7 @@ async function loadRepoFromRepo(){
 
     function updateHistorialVisibility(selectedUniversity){
       if (!historialLabelEl) return;
-      const hideHistorial = selectedUniversity === 'udea';
+      const hideHistorial = selectedUniversity === 'otro';
       historialLabelEl.classList.toggle('hidden', hideHistorial);
       if (hideHistorial) {
         if (histResult) {
@@ -2733,7 +2768,8 @@ async function loadRepoFromRepo(){
     const carrera = carreraImportSelect.value; if (!carrera){ statusEl.textContent='Selecciona una carrera.'; return; }
     clearSchedulerMessage();
     statusEl.textContent = `Cargando materias para ${carrera}...`;
-    const aprobadasRaw = (window.__historialAprobadas||[]);
+    const historialResumen = window.__historialResumen || { aprobadas: [], creditosAprobados: 0 };
+    const aprobadasRaw = Array.isArray(historialResumen.aprobadas) ? historialResumen.aprobadas : [];
     const aprobadas = aprobadasRaw.map(s=> s.split(' - ')[0] || s);
     const historialTxt = historialText ? historialText.value : '';
     try{
@@ -2741,17 +2777,7 @@ async function loadRepoFromRepo(){
       const sede = sedeSelect ? sedeSelect.value : '';
       const facultad = facultadSelect ? facultadSelect.value : '';
       const { data, fromCache } = await fetchMateriasFromApi({ fuente: f, universidad, sede, facultad, carrera, aprobadas, historial: historialTxt });
-      const aprobadasDict = {};
-      for (const a of aprobadas){
-        if (!a) continue;
-        const code = String(a).toLowerCase();
-        aprobadasDict[code] = true;
-      }
-      aprobadasDict.__names = aprobadasRaw.map(s=>{
-        if (!s) return '';
-        if (String(s).includes(' - ')) return String(s).split(' - ', 2)[1].toLowerCase();
-        return String(s).toLowerCase();
-      }).filter(Boolean);
+      const aprobadasDict = buildHistorialAprobadasLookup(aprobadasRaw, historialResumen);
       const hasEnglishApproved = (aprobadasDict.__names || []).some(n=> n.includes('ingles') || n.includes('inglés') || n.includes('intensivo') || n.includes('virtual')) || Object.keys(aprobadasDict).some(k=> k.includes('ing'));
       const filtered = (data || []).filter(d=>{
         const nombre = String(d && d.nombre ? d.nombre : '').toLowerCase();
@@ -2786,19 +2812,26 @@ async function loadRepoFromRepo(){
     }
   }catch(_){ }
 
-  function persistHistorialAprobadas(aprobadas){
-    const nextAprobadas = Array.isArray(aprobadas) ? aprobadas : [];
-    window.__historialAprobadas = nextAprobadas;
-    if (nextAprobadas.length){
-      localStorage.setItem('historial_aprobadas', JSON.stringify(nextAprobadas));
+  function persistHistorialResumen(resumen){
+    const nextResumen = {
+      aprobadas: Array.isArray(resumen && resumen.aprobadas) ? resumen.aprobadas : [],
+      creditosAprobados: Number(resumen && resumen.creditosAprobados) || 0,
+    };
+    window.__historialResumen = nextResumen;
+    window.__historialAprobadas = nextResumen.aprobadas;
+    if (nextResumen.aprobadas.length || nextResumen.creditosAprobados > 0){
+      localStorage.setItem('historial_resumen', JSON.stringify(nextResumen));
+      localStorage.setItem('historial_aprobadas', JSON.stringify(nextResumen.aprobadas));
     } else {
+      localStorage.removeItem('historial_resumen');
       localStorage.removeItem('historial_aprobadas');
     }
   }
 
-  function renderHistorialAprobadas(aprobadas, options = {}){
+  function renderHistorialAprobadas(resumen, options = {}){
     if (!histResult) return;
-    const items = Array.isArray(aprobadas) ? aprobadas : [];
+    const items = Array.isArray(resumen && resumen.aprobadas) ? resumen.aprobadas : [];
+    const creditosAprobados = Number(resumen && resumen.creditosAprobados) || 0;
     const title = options.title || 'Aprobadas extraídas';
     histResult.classList.remove('hidden');
     if (!items.length){
@@ -2808,6 +2841,7 @@ async function loadRepoFromRepo(){
     histResult.innerHTML = `
       <div class="historial-aprobadas-header">
         <strong>${escapeXml(title)}: ${items.length}</strong>
+        <span>${creditosAprobados > 0 ? `${creditosAprobados} créditos aprobados` : 'Sin créditos acumulados detectados'}</span>
         <button type="button" class="historial-aprobada-remove" data-clear-historial="1" title="Borrar historial cargado">×</button>
       </div>
     `;
@@ -2822,8 +2856,8 @@ async function loadRepoFromRepo(){
     histResult.addEventListener('click', async (event)=>{
       const removeBtn = event.target.closest('[data-clear-historial]');
       if (!removeBtn) return;
-      persistHistorialAprobadas([]);
-      renderHistorialAprobadas([], { emptyText: 'Historial vacío.' });
+      persistHistorialResumen({ aprobadas: [], creditosAprobados: 0 });
+      renderHistorialAprobadas({ aprobadas: [], creditosAprobados: 0 }, { emptyText: 'Historial vacío.' });
       statusEl.textContent = 'Historial actualizado. No quedan materias aprobadas.';
       try{
         await refreshMateriasForCurrentSelection();
@@ -2833,30 +2867,46 @@ async function loadRepoFromRepo(){
     });
   }
 
-  // Procesar historial automáticamente al pegar/editar solo para UNAL
+  // Procesar historial automáticamente al pegar/editar para UNAL y UdeA
   let histDebounce = null;
   historialText.addEventListener('input', ()=>{
     clearTimeout(histDebounce);
     histDebounce = setTimeout(()=>{
       const txt = (historialText.value||'').trim();
-      if (!txt){ persistHistorialAprobadas([]); renderHistorialAprobadas([], { emptyText: 'Historial vacío.' }); return; }
-      // Only process if Universidad Nacional is selected
-      if (universidadSelect && universidadSelect.value !== 'unal'){
-        histResult.classList.remove('hidden'); histResult.textContent = 'La extracción automática de historial solo está disponible para la Universidad Nacional.';
+      if (!txt){
+        persistHistorialResumen({ aprobadas: [], creditosAprobados: 0 });
+        renderHistorialAprobadas({ aprobadas: [], creditosAprobados: 0 }, { emptyText: 'Historial vacío.' });
         return;
       }
-      const aprobadas = extraerMateriasAprobadasJS(txt);
-      persistHistorialAprobadas(aprobadas);
-      renderHistorialAprobadas(aprobadas, { title: 'Aprobadas extraídas', emptyText: 'Historial vacío.' });
+      const universidadActual = universidadSelect ? universidadSelect.value : '';
+      if (universidadActual !== 'unal' && universidadActual !== 'udea'){
+        histResult.classList.remove('hidden');
+        histResult.textContent = 'La extracción automática del historial está disponible para UNAL y UdeA.';
+        return;
+      }
+      const resumen = extraerResumenHistorialJS(txt, universidadActual);
+      persistHistorialResumen(resumen);
+      renderHistorialAprobadas(resumen, { title: 'Aprobadas extraídas', emptyText: 'Historial vacío.' });
       historialText.value = '';
-      statusEl.textContent = `Historial procesado. Materias aprobadas: ${aprobadas.length}`;
+      statusEl.textContent = `Historial procesado. Materias aprobadas: ${resumen.aprobadas.length}${resumen.creditosAprobados > 0 ? ` · Créditos aprobados: ${resumen.creditosAprobados}` : ''}`;
     }, 500);
   });
 
-  // cargar historial si existe en cache y procesarlo automáticamente si la fuente es UNAL
+  // cargar historial si existe en cache
   try{
-    const h = JSON.parse(localStorage.getItem('historial_aprobadas')||'null');
-    if (h){ persistHistorialAprobadas(h); renderHistorialAprobadas(h, { title: 'Historial (cache)', emptyText: 'Historial vacío.' }); }
+    const rawResumen = localStorage.getItem('historial_resumen');
+    const cachedResumen = rawResumen ? JSON.parse(rawResumen) : null;
+    if (cachedResumen && (Array.isArray(cachedResumen.aprobadas) || cachedResumen.creditosAprobados > 0)){
+      persistHistorialResumen(cachedResumen);
+      renderHistorialAprobadas(cachedResumen, { title: 'Historial (cache)', emptyText: 'Historial vacío.' });
+    } else {
+      const h = JSON.parse(localStorage.getItem('historial_aprobadas')||'null');
+      if (h){
+        const legacyResumen = { aprobadas: Array.isArray(h) ? h : [], creditosAprobados: 0 };
+        persistHistorialResumen(legacyResumen);
+        renderHistorialAprobadas(legacyResumen, { title: 'Historial (cache)', emptyText: 'Historial vacío.' });
+      }
+    }
   }catch(e){}
 
   // seguridad extra: si el scheduler no se cargó en 3s, desactivar botón y mostrar nota
@@ -2940,6 +2990,42 @@ function extraerMateriasAprobadasJS(texto){
     }
   }
   return materias;
+}
+
+function extraerHistorialUdeaJS(texto){
+  const aprobadas = [];
+  let creditosAprobados = 0;
+  const lineas = String(texto || '').split(/\r?\n/);
+  const regex = /^\[(\d+)\]\s+(.+?)\s+(\d{1,2})\s+([^\s]+)\s+([A-ZÁÉÍÓÚ.]+)$/i;
+
+  for (const linea of lineas){
+    const trimmed = String(linea || '').trim();
+    const match = trimmed.match(regex);
+    if (!match) continue;
+
+    const [, codigo, nombre, creditosRaw, notaRaw] = match;
+    const notaNormalizada = normalizeComparableText(notaRaw).toUpperCase();
+    const notaNumero = Number(String(notaRaw || '').replace(',', '.'));
+    const aprobada = notaNormalizada === 'APROBADA' || notaNormalizada === 'APROBADO' || (Number.isFinite(notaNumero) && notaNumero >= 3);
+    if (!aprobada) continue;
+
+    const creditos = parseInt(creditosRaw, 10) || 0;
+    aprobadas.push(`${codigo} - ${nombre.trim()}`);
+    creditosAprobados += creditos;
+  }
+
+  return { aprobadas, creditosAprobados };
+}
+
+function extraerResumenHistorialJS(texto, universidad){
+  const fuente = normalizeFuenteKey(universidad);
+  if (fuente === 'udea') {
+    return extraerHistorialUdeaJS(texto);
+  }
+  return {
+    aprobadas: extraerMateriasAprobadasJS(texto),
+    creditosAprobados: 0,
+  };
 }
 
 // (auto-load and run handlers are initialized inside DOMContentLoaded)

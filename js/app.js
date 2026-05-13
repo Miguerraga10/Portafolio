@@ -2096,18 +2096,6 @@ function initLanguageInteractions() {
   const sharedWordOutput = document.getElementById("lang-word-display");
 
   const languageData = {
-    es: {
-      label: "Español",
-      nativeName: "Castellano",
-      sectionTitle: "Idiomas y niveles",
-      words: ["Hola", "Gracias", "Constancia", "Aprender", "Disciplina"],
-      skills: [
-        { name: "Lectura", score: 96, level: "C2" },
-        { name: "Escucha", score: 95, level: "C2" },
-        { name: "Escritura", score: 94, level: "C2" },
-        { name: "Habla", score: 97, level: "C2" }
-      ]
-    },
     en: {
       label: "Inglés",
       nativeName: "English",
@@ -2138,10 +2126,10 @@ function initLanguageInteractions() {
       sectionTitle: "Idiomas e níveis",
       words: ["Ola", "Aprender", "Foco", "Disciplina", "Crescimento"],
       skills: [
-        { name: "Lectura", score: 47, level: "A1" },
-        { name: "Escucha", score: 46, level: "A1" },
-        { name: "Escritura", score: 39, level: "A1" },
-        { name: "Habla", score: 42, level: "A1" }
+        { name: "Lectura", score: 24, level: "A1" },
+        { name: "Escucha", score: 20, level: "A1" },
+        { name: "Escritura", score: 16, level: "A1" },
+        { name: "Habla", score: 14, level: "A1" }
       ]
     }
   };
