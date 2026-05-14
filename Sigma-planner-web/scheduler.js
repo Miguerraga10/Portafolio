@@ -339,6 +339,18 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
     evaluationMs: 0,
     totalMs: 0
   };
+  const diagnostics = {
+    requiredBaseTotal: 0,
+    requiredBaseViable: 0,
+    optionalSubjects: 0,
+    candidateCombosEvaluated: 0,
+    rejectedConflict: 0,
+    rejectedDays: 0,
+    heuristicBaseRejected: 0,
+    heuristicExpansionRejected: 0,
+    estimatedFinalCombinationSpace: 0,
+    maxDias: Number(opts && opts.maxdias) || 0
+  };
   let preparationUnitsProcessed = 0;
   let evaluationUnitsProcessed = 0;
   let totalWorkUnits = 0;
@@ -362,7 +374,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
       percent: 0,
       exact: false,
       message: payload.message || 'Preparando horario...',
-      timings: { ...timings, totalMs: nowMs() - runStartedAt }
+      timings: { ...timings, diagnostics: { ...diagnostics }, totalMs: nowMs() - runStartedAt }
     });
   }
 
@@ -374,7 +386,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
       percent: 0,
       exact: false,
       message,
-      timings: { ...timings, totalMs: nowMs() - runStartedAt, algorithmMode: 'heuristic' }
+      timings: { ...timings, diagnostics: { ...diagnostics }, totalMs: nowMs() - runStartedAt, algorithmMode: 'heuristic' }
     });
   }
 
@@ -389,7 +401,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
       percent,
       exact: true,
       message: payload.message || `Procesando ${analyzed} de ${totalWorkUnits}...`,
-      timings: { ...timings, totalMs: nowMs() - runStartedAt }
+      timings: { ...timings, diagnostics: { ...diagnostics }, totalMs: nowMs() - runStartedAt }
     });
   }
 
@@ -466,12 +478,18 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
 
   async function runHeuristicSearch(requiredCombinations, optionalSubjects){
     const initialBeam = [];
+    diagnostics.requiredBaseTotal = requiredCombinations.length;
+    diagnostics.optionalSubjects = optionalSubjects.length;
     let processedRequired = 0;
     for (const combOb of requiredCombinations){
       throwIfCancelled(cancelToken);
       processedRequired += 1;
       const summary = summarizeCombination(combOb);
-      if (!summary) continue;
+      if (!summary) {
+        diagnostics.heuristicBaseRejected += 1;
+        continue;
+      }
+      diagnostics.requiredBaseViable += 1;
       initialBeam.push(summary);
       insertTopResult(summary);
       if (processedRequired === 1 || processedRequired % YIELD_INTERVAL === 0 || processedRequired === requiredCombinations.length){
@@ -502,7 +520,10 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
         for (const grupo of (materia.grupos || [])){
           heuristicSteps += 1;
           const candidate = summarizeCombination(state.comb.concat([grupo]));
-          if (!candidate) continue;
+          if (!candidate) {
+            diagnostics.heuristicExpansionRejected += 1;
+            continue;
+          }
           nextBeam.push(candidate);
           insertTopResult(candidate);
           if (heuristicSteps % YIELD_INTERVAL === 0){
@@ -550,6 +571,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
       for (let r = 0; r <= maxOptStart; r++) total += symmetricCombinationSum(optionalValues, r);
       return combinaciones_obligatorias_viables.length * total;
     })();
+    diagnostics.estimatedFinalCombinationSpace = estimatedFinalCombinationSpace;
     const useHeuristic = !opts.forceBrute && estimatedFinalCombinationSpace > BRUTE_FORCE_LIMIT;
     timings.algorithmMode = useHeuristic ? 'heuristic' : 'exact';
 
@@ -566,7 +588,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
         percent: 100,
         exact: false,
         message: topResults.length ? 'Analisis heurístico completado.' : 'Analisis heurístico completado sin horario viable.',
-        timings: { ...timings }
+        timings: { ...timings, diagnostics: { ...diagnostics } }
       });
       return topResults.length ? serializeTopResults() : null;
     }
@@ -574,6 +596,9 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
     const optionalPlans = [];
     const optValues = materias_optativas.map(m => Math.max(0, m.grupos.length));
     const requiredCombinationUnits = productCardinality(materias_obligatorias.map(m => Math.max(0, m.grupos.length)));
+    diagnostics.requiredBaseTotal = requiredCombinationUnits;
+    diagnostics.requiredBaseViable = combinaciones_obligatorias_viables.length;
+    diagnostics.optionalSubjects = materias_optativas.length;
     const optionalPreparationUnits = (()=>{
       let total = 0;
       for (let r = 1; r <= maxOptStart; r++) total += symmetricCombinationSum(optValues, r);
@@ -658,14 +683,23 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
         }
 
         const combinacion_final = combOb.concat(combOpt);
+        diagnostics.candidateCombosEvaluated += 1;
         // verificar viabilidad completa
         const horario = new SchedulerHorario(); let es_viable=true;
         for (const grupo of combinacion_final){ if (!horario.verificar_grupo(grupo)){ es_viable=false; break; } horario.agregar_grupo(grupo); }
-        if (!es_viable) continue;
+        if (!es_viable) {
+          diagnostics.rejectedConflict += 1;
+          continue;
+        }
         const creditos_asignados = combinacion_final.reduce((s,g)=> s + (g.creditos||0), 0);
-        if (creditos_asignados > opts.maxcreditos) continue;
+        if (creditos_asignados > opts.maxcreditos) {
+          continue;
+        }
         const dias_ocupados = Object.keys(horario.dias).filter(d=> Object.keys(horario.dias[d]).length>0).length;
-        if (dias_ocupados > opts.maxdias) continue;
+        if (dias_ocupados > opts.maxdias) {
+          diagnostics.rejectedDays += 1;
+          continue;
+        }
         const huecos = horario.contar_huecos();
         const total_materias = combinacion_final.length;
         let es_mejor = false;
@@ -705,7 +739,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
         percent: 100,
         exact: true,
         message: 'Analisis completado.',
-        timings: { ...timings }
+        timings: { ...timings, diagnostics: { ...diagnostics } }
       });
       break;
     }
@@ -713,7 +747,7 @@ export async function generarHorarioOptimoJS(materias, opts, onProgress, cancelT
 
     if (!topResults.length){
       timings.totalMs = nowMs() - runStartedAt;
-      reportProgress({ phase: 'done', analyzed: totalWorkUnits, total: totalWorkUnits, percent: 100, exact: true, message: 'Analisis completado. No se encontro un horario viable.', timings: { ...timings } });
+      reportProgress({ phase: 'done', analyzed: totalWorkUnits, total: totalWorkUnits, percent: 100, exact: true, message: 'Analisis completado. No se encontro un horario viable.', timings: { ...timings, diagnostics: { ...diagnostics } } });
       return null;
     }
     timings.totalMs = nowMs() - runStartedAt;

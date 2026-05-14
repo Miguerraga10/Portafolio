@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Matematicas 1 clase 4</title>
+  <desc id="d">Ilustracion abstracta de conjuntos y operaciones con regiones superpuestas.</desc>
+  <rect width="800" height="500" fill="#050912"/>
+  <rect x="50" y="50" width="700" height="400" rx="30" fill="#0c1322" stroke="#80c3ff" stroke-width="2"/>
+  <rect x="88" y="182" width="286" height="154" rx="20" fill="#0f182d" stroke="#2b8bff" stroke-width="2"/>
+  <circle cx="202" cy="260" r="54" fill="#2b8bff" opacity="0.38"/>
+  <circle cx="260" cy="260" r="54" fill="#ff6f95" opacity="0.38"/>
+  <circle cx="202" cy="260" r="10" fill="#d9ecff"/>
+  <circle cx="260" cy="260" r="10" fill="#ffd6e0"/>
+  <circle cx="230" cy="260" r="12" fill="#eef6ff"/>
+  <rect x="404" y="182" width="304" height="154" rx="20" fill="#10131f" stroke="#ff6f95" stroke-width="2"/>
+  <g>
+    <rect x="430" y="212" width="78" height="78" rx="18" fill="#7fc3ff" opacity="0.9"/>
+    <rect x="478" y="236" width="78" height="78" rx="18" fill="#ff8aa7" opacity="0.72"/>
+    <rect x="566" y="212" width="92" height="92" rx="18" fill="none" stroke="#ffe29b" stroke-width="10"/>
+  </g>
+  <g>
+    <rect x="88" y="362" width="152" height="36" rx="18" fill="#173151"/>
+    <rect x="252" y="362" width="126" height="36" rx="18" fill="#153b34"/>
+    <rect x="390" y="362" width="136" height="36" rx="18" fill="#4c2233"/>
+    <rect x="538" y="362" width="170" height="36" rx="18" fill="#4a3910"/>
+    <circle cx="164" cy="380" r="12" fill="#d7ebff"/>
+    <circle cx="318" cy="380" r="12" fill="#cef4e8"/>
+    <circle cx="458" cy="380" r="12" fill="#ffd8e2"/>
+    <circle cx="622" cy="380" r="12" fill="#ffe8a6"/>
+  </g>
+</svg>

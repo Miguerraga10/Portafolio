@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Matematicas 1 clase 5</title>
+  <desc id="d">Ilustracion abstracta de conjuntos numericos y relaciones algebraicas.</desc>
+  <rect width="800" height="500" fill="#050911"/>
+  <rect x="48" y="48" width="704" height="404" rx="30" fill="#0c1424" stroke="#82c6ff" stroke-width="2"/>
+  <rect x="88" y="184" width="294" height="150" rx="18" fill="#0f1930" stroke="#2b8bff" stroke-width="2"/>
+  <g>
+    <rect x="122" y="214" width="52" height="52" rx="14" fill="#7fc3ff"/>
+    <rect x="188" y="202" width="68" height="68" rx="18" fill="#a4d7ff"/>
+    <rect x="270" y="188" width="84" height="84" rx="20" fill="#d6ecff"/>
+    <path d="M174 240H188M256 236H270" stroke="#ff9fba" stroke-width="8" stroke-linecap="round"/>
+    <path d="M144 298H326" stroke="#ff9fba" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="180" cy="298" r="14" fill="#ffe29b"/>
+    <circle cx="250" cy="298" r="14" fill="#ffe29b"/>
+  </g>
+  <rect x="410" y="184" width="300" height="150" rx="18" fill="#10131f" stroke="#ff6f95" stroke-width="2"/>
+  <g>
+    <circle cx="456" cy="222" r="22" fill="#7fc3ff"/>
+    <circle cx="522" cy="222" r="22" fill="#a4d7ff"/>
+    <circle cx="588" cy="222" r="22" fill="#d6ecff"/>
+    <circle cx="654" cy="222" r="22" fill="#ff8aa7"/>
+    <path d="M438 286H676" stroke="#ffe29b" stroke-width="12" stroke-linecap="round"/>
+    <path d="M488 254V318M626 254V318" stroke="#ffd3df" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="88" y="362" width="138" height="36" rx="18" fill="#16304e"/>
+    <rect x="238" y="362" width="156" height="36" rx="18" fill="#163d35"/>
+    <rect x="406" y="362" width="160" height="36" rx="18" fill="#4c2235"/>
+    <rect x="578" y="362" width="130" height="36" rx="18" fill="#4d3910"/>
+    <circle cx="156" cy="380" r="12" fill="#d8ecff"/>
+    <circle cx="316" cy="380" r="12" fill="#cdf3e6"/>
+    <circle cx="486" cy="380" r="12" fill="#ffd7e2"/>
+    <circle cx="644" cy="380" r="12" fill="#ffe7a4"/>
+  </g>
+</svg>

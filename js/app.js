@@ -1428,10 +1428,81 @@ function createExamExercise(config) {
   return wrap;
 }
 
+function isMarkdownTableBlock(block) {
+  var lines = String(block || "")
+    .split("\n")
+    .map(function (line) { return line.trim(); })
+    .filter(Boolean);
+
+  if (lines.length < 2) return false;
+  if (lines[0].indexOf("|") === -1 || lines[1].indexOf("|") === -1) return false;
+
+  return /^\|?(?:\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?$/.test(lines[1]);
+}
+
+function splitMarkdownTableRow(line) {
+  return String(line || "")
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map(function (cell) { return cell.trim(); });
+}
+
+function createMarkdownTableNode(block) {
+  var lines = String(block || "")
+    .split("\n")
+    .map(function (line) { return line.trim(); })
+    .filter(Boolean);
+
+  var headers = splitMarkdownTableRow(lines[0]);
+  var rows = lines.slice(2).map(splitMarkdownTableRow);
+  var wrap = el("div", "lesson-table-wrap");
+  var table = el("table", "lesson-table");
+  var thead = document.createElement("thead");
+  var tbody = document.createElement("tbody");
+  var headerRow = document.createElement("tr");
+
+  headers.forEach(function (header) {
+    var th = document.createElement("th");
+    th.textContent = header;
+    headerRow.appendChild(th);
+  });
+
+  thead.appendChild(headerRow);
+
+  rows.forEach(function (cells) {
+    var row = document.createElement("tr");
+    headers.forEach(function (_, index) {
+      var td = document.createElement("td");
+      td.textContent = cells[index] || "";
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
+}
+
 function appendLessonContentNode(parentNode, block) {
-  if (block.indexOf("## ") === 0) {
-    const h4 = el("h4", "lesson-subheading", block.replace(/^##\s*/, ""));
-    parentNode.appendChild(h4);
+  var headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
+  if (headingMatch) {
+    var headingLevel = headingMatch[1].length;
+    var headingText = headingMatch[2].trim();
+    var headingNode = el(
+      headingLevel === 2 ? "h4" : (headingLevel === 3 ? "h5" : "h6"),
+      headingLevel === 2 ? "lesson-subheading" : (headingLevel === 3 ? "lesson-minor-heading" : "lesson-micro-heading"),
+      headingText
+    );
+    parentNode.appendChild(headingNode);
+    return;
+  }
+
+  if (isMarkdownTableBlock(block)) {
+    parentNode.appendChild(createMarkdownTableNode(block));
     return;
   }
 
@@ -1514,6 +1585,16 @@ function appendLessonContentNode(parentNode, block) {
     return;
   }
 
+  if (/^(?:\d+\.\s+.+\n?)+$/.test(block)) {
+    const list = el("ol", "lesson-numbered-list");
+    block.split("\n").forEach(function (line) {
+      var itemText = line.replace(/^\d+\.\s+/, "").trim();
+      if (itemText) list.appendChild(el("li", null, itemText));
+    });
+    parentNode.appendChild(list);
+    return;
+  }
+
   const p = el("p", null, block);
   parentNode.appendChild(p);
 }
@@ -1576,9 +1657,10 @@ function renderLessonPage() {
   const topicsNode = document.getElementById("lesson-topics");
   const backNode = document.getElementById("back-to-course");
   const isJaponesN5Lesson = result.course && result.course.id === "japones-n5";
+  const useStructuredLesson = !!isJaponesN5Lesson || (result.course && result.course.id === "matematicas-1");
 
   root.classList.toggle("lesson-detail--japones-n5", !!isJaponesN5Lesson);
-  if (contentNode) contentNode.classList.toggle("lesson-content--sectioned", !!isJaponesN5Lesson);
+  if (contentNode) contentNode.classList.toggle("lesson-content--sectioned", !!useStructuredLesson);
   if (titleNode) titleNode.textContent = result.module.title;
   if (subtitleNode) subtitleNode.textContent = result.module.subtitle || (result.course.title + " • " + result.catalog.title);
   if (headingNode) headingNode.textContent = result.module.subtitle || result.module.title;
@@ -1597,7 +1679,7 @@ function renderLessonPage() {
       })
       .filter(Boolean);
 
-    renderLessonBlocks(contentNode, blocks, isJaponesN5Lesson);
+    renderLessonBlocks(contentNode, blocks, useStructuredLesson);
 
     if (result.module.id === "sobre-el-curso") {
       const outlineTitle = el("h4", "lesson-subheading", "Contenido del curso");
@@ -2103,9 +2185,9 @@ function initLanguageInteractions() {
       words: ["Hello", "Learning", "Focus", "Consistency", "Growth"],
       skills: [
         { name: "Lectura", score: 72, level: "C2" },
-        { name: "Escucha", score: 43, level: "B1" },
-        { name: "Escritura", score: 43, level: "B1" },
-        { name: "Habla", score: 36, level: "A2" }
+        { name: "Escucha", score: 46, level: "B1" },
+        { name: "Escritura", score: 49, level: "B1" },
+        { name: "Habla", score: 53, level: "B2" }
       ]
     },
     jp: {

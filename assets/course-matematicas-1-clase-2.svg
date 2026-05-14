@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Matematicas 1 clase 2</title>
+  <desc id="d">Ilustracion abstracta de inferencias y demostracion con conexiones y nodos.</desc>
+  <rect width="800" height="500" fill="#050810"/>
+  <rect x="48" y="48" width="704" height="404" rx="30" fill="#0b1423" stroke="#87c8ff" stroke-width="2"/>
+  <path d="M94 328C184 258 244 218 326 194C408 170 516 154 684 118" fill="none" stroke="#6db7ff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M98 378C182 344 264 334 350 304C436 274 528 250 694 252" fill="none" stroke="#ff6f95" stroke-width="7" stroke-linecap="round" opacity="0.92"/>
+  <circle cx="326" cy="194" r="13" fill="#d8ecff"/>
+  <circle cx="540" cy="250" r="11" fill="#ffd2de"/>
+  <rect x="92" y="178" width="256" height="118" rx="18" fill="#101b30" stroke="#2b8bff" stroke-width="2"/>
+  <g>
+    <circle cx="128" cy="210" r="16" fill="#7fc3ff"/>
+    <circle cx="128" cy="264" r="16" fill="#7fc3ff"/>
+    <circle cx="308" cy="238" r="18" fill="#ff9fba"/>
+    <path d="M150 210H248" stroke="#cde7ff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M150 264H248" stroke="#cde7ff" stroke-width="8" stroke-linecap="round"/>
+    <path d="M248 236H286" stroke="#ffb3c8" stroke-width="8" stroke-linecap="round"/>
+    <path d="M272 224L292 238L272 252" fill="none" stroke="#ffb3c8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <rect x="388" y="178" width="318" height="138" rx="18" fill="#10131f" stroke="#ff6f95" stroke-width="2"/>
+  <g>
+    <path d="M422 248H660" stroke="#7fc3ff" stroke-width="12" stroke-linecap="round"/>
+    <path d="M422 282H596" stroke="#ffe29b" stroke-width="12" stroke-linecap="round"/>
+    <path d="M422 214L480 248L422 282" fill="none" stroke="#ff8aa7" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="622" cy="282" r="18" fill="#ff8aa7"/>
+    <circle cx="670" cy="248" r="18" fill="#d5ebff"/>
+  </g>
+  <g>
+    <rect x="92" y="360" width="152" height="36" rx="18" fill="#1e2f52"/>
+    <rect x="256" y="360" width="152" height="36" rx="18" fill="#133d35"/>
+    <rect x="420" y="360" width="152" height="36" rx="18" fill="#512235"/>
+    <rect x="584" y="360" width="122" height="36" rx="18" fill="#4b3310"/>
+    <circle cx="168" cy="378" r="12" fill="#d7ebff"/>
+    <path d="M291 378H373" stroke="#c8f4e6" stroke-width="8" stroke-linecap="round"/>
+    <path d="M472 364L520 392M520 364L472 392" stroke="#ffd7e2" stroke-width="8" stroke-linecap="round"/>
+    <path d="M619 364L671 392M671 364L619 392" stroke="#ffe8aa" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>

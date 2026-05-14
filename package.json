@@ -6,6 +6,7 @@
     "check:functions": "node --check netlify/functions/materias.js"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "mongodb": "^6.16.0"
   },
   "devDependencies": {

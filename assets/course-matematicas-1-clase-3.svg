@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="t d">
+  <title id="t">Matematicas 1 clase 3</title>
+  <desc id="d">Ilustracion abstracta de cuantificadores, dominio y relaciones.</desc>
+  <rect width="800" height="500" fill="#050912"/>
+  <rect x="52" y="52" width="696" height="396" rx="30" fill="#0d1426" stroke="#7ec2ff" stroke-width="2"/>
+  <circle cx="654" cy="110" r="82" fill="#10365d" opacity="0.45"/>
+  <circle cx="146" cy="386" r="94" fill="#4a1530" opacity="0.28"/>
+  <rect x="88" y="184" width="270" height="146" rx="18" fill="#0d1a31" stroke="#2b8bff" stroke-width="2"/>
+  <g>
+    <circle cx="150" cy="220" r="18" fill="#7fc3ff"/>
+    <circle cx="204" cy="220" r="18" fill="#7fc3ff"/>
+    <circle cx="258" cy="220" r="18" fill="#7fc3ff"/>
+    <circle cx="312" cy="220" r="18" fill="#7fc3ff"/>
+    <path d="M132 276C166 246 196 246 230 276C264 306 294 306 328 276" fill="none" stroke="#ff9fba" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="230" cy="276" r="16" fill="#ffd6e0"/>
+  </g>
+  <rect x="388" y="184" width="320" height="146" rx="18" fill="#10131f" stroke="#ff6f95" stroke-width="2"/>
+  <g>
+    <rect x="420" y="212" width="72" height="72" rx="18" fill="#7fc3ff" opacity="0.95"/>
+    <rect x="510" y="212" width="72" height="72" rx="18" fill="#ff8aa7" opacity="0.95"/>
+    <rect x="600" y="212" width="72" height="72" rx="18" fill="#ffe29b" opacity="0.95"/>
+    <path d="M492 248H510M582 248H600" stroke="#dcecff" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="88" y="360" width="174" height="36" rx="18" fill="#183151"/>
+    <rect x="274" y="360" width="148" height="36" rx="18" fill="#153d34"/>
+    <rect x="434" y="360" width="150" height="36" rx="18" fill="#4a2334"/>
+    <rect x="596" y="360" width="112" height="36" rx="18" fill="#493811"/>
+    <circle cx="174" cy="378" r="12" fill="#d7ebff"/>
+    <circle cx="334" cy="378" r="12" fill="#cdf3e7"/>
+    <path d="M482 366L536 390M536 366L482 390" stroke="#ffd7e2" stroke-width="8" stroke-linecap="round"/>
+    <path d="M620 378H684" stroke="#ffe5a3" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>

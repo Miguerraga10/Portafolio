@@ -67,17 +67,17 @@
 
       <div id="customMateriaForm" class="panel-card hidden" style="grid-column:1/-1;margin-top:8px;padding:10px 12px">
         <h4 style="margin:0 0 8px;font-size:13px">Nueva materia personalizada</h4>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
-          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;flex:2;min-width:130px">Nombre
+        <div class="custom-materia-row">
+          <label class="custom-field custom-field--name">Nombre
             <input id="cmNombre" type="text" placeholder="Ej: Cálculo I">
           </label>
-          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:90px">Código
+          <label class="custom-field custom-field--code">Código
             <input id="cmCodigo" type="text" placeholder="Ej: 1000001">
           </label>
-          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:60px">Créditos
+          <label class="custom-field custom-field--credits">Créditos
             <input id="cmCreditos" type="number" value="3" min="1" max="20">
           </label>
-          <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;width:105px">Tipo
+          <label class="custom-field custom-field--type">Tipo
             <select id="cmTipo">
               <option value="obligatoria">Obligatoria</option>
               <option value="optativa">Optativa</option>
@@ -85,10 +85,10 @@
           </label>
         </div>
         <div id="cmGruposContainer"></div>
-        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
-          <button id="cmAddGrupoBtn" type="button" style="padding:5px 12px;font-size:12px">+ Grupo</button>
-          <button id="cmAddMateriaBtn" type="button" style="padding:5px 14px;font-size:12px">Agregar materia</button>
-          <span id="cmStatus" style="font-size:12px;margin-left:4px"></span>
+        <div class="custom-materia-actions">
+          <button id="cmAddGrupoBtn" type="button" class="custom-materia-btn">+ Grupo</button>
+          <button id="cmAddMateriaBtn" type="button" class="custom-materia-btn">Agregar materia</button>
+          <span id="cmStatus" class="custom-materia-status"></span>
         </div>
       </div>
 
@@ -99,28 +99,31 @@
 
     <div class="layout">
       <aside class="sidebar">
-        <div class="side-by-side" style="display:flex;gap:12px;align-items:flex-start">
-          <section class="loaded-materias panel-card" style="flex:2;min-width:420px">
-            <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
+        <div class="sigma-top-grid">
+          <section class="loaded-materias panel-card sigma-loaded-panel">
+            <div class="loaded-materias-header">
+              <h3 style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">Materias cargadas <span id="selectedAnalysisCount" class="selected-analysis-count">0 seleccionadas</span> <span class="loaded-legend"><span class="badge red">OBL</span><span class="loaded-legend-text">Obligatoria</span><span class="badge blue">OPT</span><span class="loaded-legend-text">Optativa</span></span></h3>
+              <button id="reloadDbMateriasBtn" class="reload-db-btn" title="Recargar cupos y grupos desde la base de datos" aria-label="Recargar cupos y grupos desde la base de datos">↻</button>
+            </div>
             <div id="loadedMaterias" class="panel">
               <div class="muted">No hay materias cargadas.</div>
             </div>
-            <div style="margin-top:8px">
+            <div class="loaded-materias-actions">
               <button id="selectAllBtn">Seleccionar todo</button>
               <button id="deselectAllBtn">Deseleccionar todo</button>
               <button id="clearAllBtn" class="secondary">Eliminar todo</button>
             </div>
           </section>
 
-          <div style="display:flex;gap:12px;align-items:flex-start">
-            <section class="intervalos-panel panel-card" style="width:320px;min-width:260px">
+          <div class="sigma-side-panels">
+            <section class="intervalos-panel panel-card sigma-side-panel">
             <h3>Intervalos libres</h3>
             <div class="field-row">
               <label>Hora inicio: <input id="intervalStart" type="time" value="12:00"></label>
               <label>Hora fin: <input id="intervalEnd" type="time" value="14:00"></label>
             </div>
             <label>Días:
-              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+              <div class="interval-days-grid">
                 <label><input type="checkbox" class="diasChk" value="LUNES"> Lun</label>
                 <label><input type="checkbox" class="diasChk" value="MARTES"> Mar</label>
                 <label><input type="checkbox" class="diasChk" value="MIÉRCOLES"> Mié</label>
@@ -134,11 +137,11 @@
             <div id="intervalList" class="status" style="margin-top:8px"></div>
             </section>
 
-            <section class="opciones-panel panel-card" style="width:320px;min-width:260px">
+            <section class="opciones-panel panel-card sigma-side-panel">
               <h3>Opciones</h3>
               <div class="field-row">
-                <label>Max cr: <input id="maxCred" type="number" min="1" max="30"></label>
-                <label>Max mat: <input id="maxMaterias" type="number" value="8" min="1" max="99"></label>
+                <label>Créditos: <input id="maxCred" type="number" value="40" min="1" max="40" aria-label="Créditos máximos"></label>
+                <label>Max mat: <input id="maxMaterias" type="number" value="12" min="1" max="12"></label>
               </div>
               <div class="field-row">
                 <label>Hora inicio: <input id="horaInicio" type="time" value="08:00"></label>
@@ -167,18 +170,18 @@
         <section id="errors" class="status hidden"></section>
 
         <div class="sigma-run-layout">
-          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+          <div class="sigma-run-actions">
           <button id="runBtn">Generar horario</button>
           <button id="cancelRunBtn" class="secondary hidden" type="button">Cancelar</button>
           </div>
         </div>
 
         <section id="result" class="result hidden">
-          <div class="schedule-tabs-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <div class="schedule-tabs" id="scheduleTabs" style="flex:1">
+          <div class="schedule-tabs-bar sigma-tabs-bar">
+            <div class="schedule-tabs sigma-tabs-list" id="scheduleTabs">
               <button id="addTabBtn" type="button" class="schedule-tab-add" aria-label="Nueva pestaña">+</button>
             </div>
-            <button id="deleteAllSchedulesBtn" class="secondary" style="white-space:nowrap">Eliminar todos</button>
+            <button id="deleteAllSchedulesBtn" class="secondary sigma-tabs-delete">Eliminar todos</button>
           </div>
           <div id="summary"></div>
           <div class="result-grid">
@@ -210,6 +213,7 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script type="module" src="app.js"></script>
   <script>
     (function(){

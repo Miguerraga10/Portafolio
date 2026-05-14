@@ -574,8 +574,11 @@ function syncQuickMateriaSelection(items, options = {}){
 function renderLoadedMateriasCommon(){
   const loadedEl = document.getElementById('loadedMaterias');
   const selectedAnalysisCountEl = document.getElementById('selectedAnalysisCount');
+  const reloadDbMateriasBtn = document.getElementById('reloadDbMateriasBtn');
   if (!loadedEl) return;
   const list = window.__lastLoaded || [];
+  const hasDbLoadedMaterias = list.some(item => !item.__manual);
+  if (reloadDbMateriasBtn) reloadDbMateriasBtn.disabled = !hasDbLoadedMaterias;
   const selectedCount = Array.isArray(window.__lastLoadedFiltered) ? window.__lastLoadedFiltered.length : 0;
   if (selectedAnalysisCountEl){
     selectedAnalysisCountEl.textContent = `${selectedCount} seleccionadas`;
@@ -634,25 +637,24 @@ function renderLoadedMateriasCommon(){
       renderLoadedMateriasCommon();
     };
 
-    const badge = document.createElement('span'); badge.className = 'badge ' + (m.obligatoria? 'red':'blue'); badge.textContent = m.obligatoria? 'OBL':'OPT'; badge.style.cursor = 'pointer'; badge.title = 'Alternar obligatoria/optativa';
-    badge.addEventListener('click', (e)=>{ e.stopPropagation(); m.obligatoria = !m.obligatoria;
-      if (Array.isArray(window.__lastLoadedFiltered)){
-        window.__lastLoadedFiltered.forEach(it=>{ if (it.nombre === m.nombre) it.obligatoria = m.obligatoria; });
-      }
-      renderLoadedMateriasCommon();
-    });
-
-    const titleSpan = document.createElement('span'); titleSpan.style.marginLeft='6px'; titleSpan.innerHTML = `<strong>${escapeXml(m.nombre)}</strong>`;
     const grupos = m.grupos || [];
     const exclSet = (window.__excludedGrupos||{})[m.nombre] || new Set();
-    const activeCount = grupos.length - exclSet.size;
-    const countBadge = document.createElement('span'); countBadge.className='grupo-count-badge'; countBadge.dataset.materia=m.nombre;
-    countBadge.textContent = `${activeCount}/${grupos.length}`;
+    const activeGrupos = grupos.filter(grupo => !exclSet.has(grupo && grupo.grupo));
+    const totalCupos = getMateriaTotalCupos(activeGrupos);
     const expandArrow = document.createElement('span'); expandArrow.className='expand-arrow'; expandArrow.textContent='›';
 
-    left.appendChild(cb); left.appendChild(badge); left.appendChild(titleSpan); left.appendChild(countBadge);
+    const infoBlock = document.createElement('div'); infoBlock.className='materia-info';
+    const metaRow = document.createElement('div'); metaRow.className='materia-meta-row';
+    const codeSpan = document.createElement('span'); codeSpan.className='materia-code'; codeSpan.textContent = getMateriaCodigoLabel(m);
+    const credSpan = document.createElement('span'); credSpan.className='materia-credit'; credSpan.textContent=`${m.creditos||0} cr`;
+    const totalCuposSpan = document.createElement('span'); totalCuposSpan.className=`materia-total-cupos ${getCuposToneClass(totalCupos)}`; totalCuposSpan.textContent=`${totalCupos} cupos`;
+    metaRow.appendChild(codeSpan); metaRow.appendChild(credSpan); metaRow.appendChild(totalCuposSpan);
+    const titleSpan = document.createElement('div'); titleSpan.className='materia-name'; titleSpan.textContent = m.nombre || 'Materia';
+    infoBlock.appendChild(metaRow); infoBlock.appendChild(titleSpan);
 
-    const credSpan = document.createElement('span'); credSpan.className='meta'; credSpan.textContent=`${m.creditos||0} cr`;
+    left.appendChild(cb); left.appendChild(infoBlock);
+    right.appendChild(createMateriaRequirementButton(m));
+
     const delBtn = document.createElement('button');
     delBtn.type='button'; delBtn.className='materia-remove'; delBtn.textContent='×'; delBtn.title='Eliminar materia';
     delBtn.addEventListener('click', (e)=>{
@@ -674,7 +676,7 @@ function renderLoadedMateriasCommon(){
       try{ if(typeof window.__renderSelectedFromBest==='function') window.__renderSelectedFromBest((window.__scheduleTabs||[]).find(t=>t.id===window.__activeScheduleId)?.best || { materias: [] }); }catch(_){ }
       try{ renderLoadedMateriasCommon(); }catch(_){ }
     });
-    right.appendChild(credSpan); right.appendChild(expandArrow); right.appendChild(delBtn);
+    right.appendChild(expandArrow); right.appendChild(delBtn);
     row.appendChild(left); row.appendChild(right);
 
     const gruposPanel = document.createElement('div'); gruposPanel.className='grupos-panel';
@@ -718,7 +720,7 @@ function renderLoadedMateriasCommon(){
 
         const headerDiv = document.createElement('div'); headerDiv.className='grupo-header';
         const labelSpan = document.createElement('span'); labelSpan.className='grupo-label'; labelSpan.textContent=grupoLabel;
-        const cuposSpan = document.createElement('span'); cuposSpan.className='grupo-cupos'; cuposSpan.textContent=String(cupos);
+        const cuposSpan = document.createElement('span'); cuposSpan.className=`grupo-cupos ${getCuposToneClass(cupos)}`; cuposSpan.textContent=String(cupos);
         headerDiv.appendChild(labelSpan); headerDiv.appendChild(cuposSpan);
 
         const profeTitle = profe ? profe.toLowerCase().replace(/\b\w/g, c=>c.toUpperCase()) : '';
@@ -733,12 +735,7 @@ function renderLoadedMateriasCommon(){
         exclBtn.addEventListener('click', (e)=>{
           e.stopPropagation();
           toggleGrupoExcluded(m.nombre, grupoKey);
-          const nowExcl = isGrupoExcluded(m.nombre, grupoKey);
-          gItem.classList.toggle('excluded', nowExcl);
-          exclBtn.title = nowExcl ? 'Incluir grupo' : 'Excluir grupo';
-          exclBtn.innerHTML = nowExcl ? '<span style="color:#2ecc40;font-size:18px;">✔</span>' : '<span style="color:#ff3555;font-size:18px;">×</span>';
-          const exclSetNow = (window.__excludedGrupos||{})[m.nombre] || new Set();
-          countBadge.textContent = `${grupos.length - exclSetNow.size}/${grupos.length}`;
+          renderLoadedMateriasCommon();
         });
 
         gItem.addEventListener('click', (e)=>{
@@ -914,6 +911,72 @@ function normalizeComparableText(value){
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
+}
+
+function getMateriaRequirementLabel(materia){
+  return materia && materia.obligatoria ? 'Obligatoria' : 'Optativa';
+}
+
+function updateMateriaRequirementState(materia, obligatoria){
+  const next = { ...materia, obligatoria: !!obligatoria };
+  const normalizedTipologia = normalizeComparableText(materia && materia.tipologia ? materia.tipologia : '');
+  if (!normalizedTipologia || normalizedTipologia === 'obligatoria' || normalizedTipologia === 'optativa') {
+    next.tipologia = next.obligatoria ? 'Obligatoria' : 'Optativa';
+  }
+  return next;
+}
+
+function toggleMateriaRequirement(materia){
+  if (!materia) return;
+  const materiaKey = getMateriaKey(materia);
+  const nextRequired = !(materia && materia.obligatoria);
+  const applyToList = list => (list || []).map(item => getMateriaKey(item) === materiaKey ? updateMateriaRequirementState(item, nextRequired) : item);
+
+  window.__lastLoaded = applyToList(window.__lastLoaded);
+  window.__lastLoadedFiltered = applyToList(window.__lastLoadedFiltered);
+
+  if (window.__manualCache && window.__manualCache.length) {
+    window.__manualCache = applyToList(window.__manualCache);
+    saveManualMateriasCache(window.__manualCache);
+  }
+
+  saveMateriasCache();
+  updateScheduleWithNewSelection();
+  renderLoadedMateriasCommon();
+}
+
+function createMateriaRequirementButton(materia){
+  const button = document.createElement('button');
+  const isRequired = !!(materia && materia.obligatoria);
+  const currentLabel = isRequired ? 'OBL' : 'OPT';
+  const nextLabel = isRequired ? 'Optativa' : 'Obligatoria';
+  button.type = 'button';
+  button.className = `badge materia-type-toggle ${isRequired ? 'red' : 'blue'}`;
+  button.textContent = currentLabel;
+  button.title = `Cambiar a ${nextLabel}`;
+  button.setAttribute('aria-label', `${getMateriaRequirementLabel(materia)}. Cambiar a ${nextLabel}`);
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    clearSchedulerMessage();
+    toggleMateriaRequirement(materia);
+  });
+  return button;
+}
+
+function getMateriaCodigoLabel(materia){
+  const codigo = String(materia && materia.codigo ? materia.codigo : '').trim();
+  return codigo || 'Sin código';
+}
+
+function getCuposToneClass(cupos){
+  const total = Number(cupos);
+  if (!Number.isFinite(total) || total <= 0) return 'is-empty';
+  if (total < 10) return 'is-low';
+  return 'is-good';
+}
+
+function getMateriaTotalCupos(grupos){
+  return (grupos || []).reduce((sum, grupo) => sum + (Number(grupo && grupo.cupos) || 0), 0);
 }
 
 function buildHistorialAprobadasLookup(aprobadas, resumen){
@@ -1549,8 +1612,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
 
   function syncOptionsFromUi(){
-    const maxcreditos = clampInputValue(maxCredInput, 1, 30, 30);
-    const maxmaterias = clampInputValue(maxMateriasInput, 1, 99, 8);
+    const maxcreditos = clampInputValue(maxCredInput, 1, 40, 40);
+    const maxmaterias = clampInputValue(maxMateriasInput, 1, 12, 12);
     const maxdias = clampInputValue(maxDiasInput, 1, 7, 3);
     const topN = clampInputValue(topNInput, 1, 5, 1);
     const hora_inicio = normalizeTimeInput(horaInicioInput, '06:00');
@@ -1643,6 +1706,39 @@ window.addEventListener('DOMContentLoaded', ()=>{
     targetEl.style.display = '';
   }
 
+  function buildNoScheduleReasonHtml(timings, opts, timedOut){
+    const diagnostics = timings && timings.diagnostics ? timings.diagnostics : null;
+    const reasons = [];
+    const details = [];
+
+    if (diagnostics){
+      if (diagnostics.requiredBaseTotal > 0 && diagnostics.requiredBaseViable === 0){
+        reasons.push('Ninguna combinación base de materias obligatorias fue viable con las restricciones actuales.');
+      } else {
+        if ((diagnostics.rejectedConflict || 0) > 0){
+          reasons.push('La principal causa de descarte fueron cruces de horario entre grupos.');
+        }
+        if ((diagnostics.rejectedDays || 0) > 0){
+          reasons.push(`También se descartaron combinaciones por exceder el máximo de ${Number(opts && opts.maxdias) || 0} días.`);
+        }
+        if ((diagnostics.heuristicExpansionRejected || 0) > 0 && !(diagnostics.rejectedConflict || 0)){
+          reasons.push('Durante la exploración heurística no aparecieron extensiones compatibles para mejorar la base obligatoria.');
+        }
+      }
+
+      if (diagnostics.requiredBaseTotal > 0) details.push(`<li><b>Bases obligatorias viables:</b> ${escapeXml(formatCompactNumber(diagnostics.requiredBaseViable))} de ${escapeXml(formatCompactNumber(diagnostics.requiredBaseTotal))}</li>`);
+      if (diagnostics.candidateCombosEvaluated > 0) details.push(`<li><b>Combinaciones evaluadas:</b> ${escapeXml(formatCompactNumber(diagnostics.candidateCombosEvaluated))}</li>`);
+      if (diagnostics.rejectedConflict > 0) details.push(`<li><b>Descartadas por conflicto:</b> ${escapeXml(formatCompactNumber(diagnostics.rejectedConflict))}</li>`);
+      if (diagnostics.rejectedDays > 0) details.push(`<li><b>Descartadas por días ocupados:</b> ${escapeXml(formatCompactNumber(diagnostics.rejectedDays))}</li>`);
+      if (diagnostics.estimatedFinalCombinationSpace > 0) details.push(`<li><b>Espacio estimado de búsqueda:</b> ${escapeXml(formatCompactNumber(diagnostics.estimatedFinalCombinationSpace))}</li>`);
+    }
+
+    if (timedOut) reasons.unshift('El cálculo se interrumpió antes de completar toda la búsqueda.');
+    if (!reasons.length) reasons.push('No apareció ninguna combinación que cumpliera simultáneamente compatibilidad horaria, cantidad de materias y límite de días.');
+
+    return `${reasons.map(reason => `<div>${escapeXml(reason)}</div>`).join('')}${details.length ? `<ul style="margin:8px 0 0 18px">${details.join('')}</ul>` : ''}`;
+  }
+
   function applyOptionsCache(){
     const cached = loadOptionsCache();
     if (cached && typeof cached === 'object'){
@@ -1654,6 +1750,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
       if (horaFinInput && cached.hora_fin) horaFinInput.value = cached.hora_fin;
       if (forceBruteInput) forceBruteInput.checked = !!cached.forceBrute;
     } else {
+      if (maxCredInput) maxCredInput.value = '40';
+      if (maxMateriasInput) maxMateriasInput.value = '12';
       if (maxDiasInput) maxDiasInput.value = '3';
       if (horaInicioInput) horaInicioInput.value = '06:00';
       if (horaFinInput) horaFinInput.value = '20:00';
@@ -1719,6 +1817,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const loadedEl = document.getElementById('loadedMaterias');
   const selectAllBtn = document.getElementById('selectAllBtn');
   const deselectAllBtn = document.getElementById('deselectAllBtn');
+  const reloadDbMateriasBtn = document.getElementById('reloadDbMateriasBtn');
   const clearAllBtn = document.getElementById('clearAllBtn');
 
   function renderLoadedMaterias(){
@@ -1788,12 +1887,16 @@ window.addEventListener('DOMContentLoaded', ()=>{
         const left = document.createElement('div'); left.className = 'materia-row-left';
         const right = document.createElement('div'); right.className = 'materia-row-right';
 
-        const badge = document.createElement('span');
-        badge.className = 'badge ' + (obligatoria ? 'red' : 'blue');
-        badge.textContent = obligatoria ? 'OBL' : 'OPT';
-
-        const nameEl = document.createElement('span'); nameEl.style.marginLeft = '6px';
-        nameEl.innerHTML = `<strong>${escapeXml(nombre)}</strong>`;
+        const totalCupos = getMateriaTotalCupos(grupos);
+        const infoBlock = document.createElement('div'); infoBlock.className = 'materia-info';
+        const metaRow = document.createElement('div'); metaRow.className = 'materia-meta-row';
+        const codeSpan = document.createElement('span'); codeSpan.className = 'materia-code'; codeSpan.textContent = getMateriaCodigoLabel(mat);
+        const credSpan = document.createElement('span'); credSpan.className = 'materia-credit'; credSpan.textContent = `${mat ? (mat.creditos||0) : 0} cr`;
+        const totalCuposSpan = document.createElement('span'); totalCuposSpan.className = `materia-total-cupos ${getCuposToneClass(totalCupos)}`; totalCuposSpan.textContent = `${totalCupos} cupos`;
+        metaRow.appendChild(codeSpan); metaRow.appendChild(credSpan); metaRow.appendChild(totalCuposSpan);
+        const nameEl = document.createElement('div'); nameEl.className = 'materia-name';
+        nameEl.textContent = nombre;
+        infoBlock.appendChild(metaRow); infoBlock.appendChild(nameEl);
 
         // Grupo seleccionado actual como hint
         if (selectedGrupoKey){
@@ -1806,10 +1909,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
         }
 
         const expandArrow = document.createElement('span'); expandArrow.className = 'expand-arrow'; expandArrow.textContent = '›';
-        const credSpan = document.createElement('span'); credSpan.className = 'meta'; credSpan.textContent = `${mat ? (mat.creditos||0) : 0} cr`;
 
-        left.appendChild(badge); left.appendChild(nameEl);
-        right.appendChild(credSpan); right.appendChild(expandArrow);
+        left.appendChild(infoBlock);
+        right.appendChild(createMateriaRequirementButton(mat));
+        right.appendChild(expandArrow);
         headerRow.appendChild(left); headerRow.appendChild(right);
 
         // Groups panel (collapsed by default, expanded if in set)
@@ -1854,7 +1957,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
             const hdrDiv = document.createElement('div'); hdrDiv.className = 'grupo-header';
             const labelSpan = document.createElement('span'); labelSpan.className = 'grupo-label'; labelSpan.textContent = grupoLabel;
-            const cuposSpan = document.createElement('span'); cuposSpan.className = 'grupo-cupos'; cuposSpan.textContent = g.cupos != null ? String(g.cupos) : '';
+            const cuposSpan = document.createElement('span'); cuposSpan.className = `grupo-cupos ${getCuposToneClass(g.cupos)}`; cuposSpan.textContent = g.cupos != null ? String(g.cupos) : '';
             hdrDiv.appendChild(labelSpan); hdrDiv.appendChild(cuposSpan);
 
             const profe = g.profesor && g.profesor !== 'NO DISPONIBLE' ? g.profesor : '';
@@ -1978,6 +2081,21 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
   window.__renderScheduleTabUI = renderScheduleTabUI;
 
+  function syncScheduleDownloadActions(best, opts){
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+    const hasSchedule = !!(best && Array.isArray(best.comb) && best.comb.length);
+
+    if (downloadBtn) {
+      downloadBtn.classList.toggle('hidden', !hasSchedule);
+      downloadBtn.onclick = hasSchedule ? (() => downloadScheduleSVG(best, opts || {})) : null;
+    }
+    if (downloadExcelBtn) {
+      downloadExcelBtn.classList.toggle('hidden', !hasSchedule);
+      downloadExcelBtn.onclick = hasSchedule ? (() => downloadScheduleExcel()) : null;
+    }
+  }
+
   function setActiveSchedule(id){
     window.__activeScheduleId = id;
     saveScheduleTabsCache(window.__scheduleTabs || [], window.__activeScheduleId);
@@ -1991,11 +2109,13 @@ window.addEventListener('DOMContentLoaded', ()=>{
       if (renderableBest && renderableBest.comb){ for (const g of renderableBest.comb){ if (g.materiaNombre) window.__currentScheduleSelections[g.materiaNombre] = g.grupo || ''; } }
       renderSelectedFromBest(renderableBest);
       try{ renderScheduleSVG(renderableBest, tab.opts || {}); }catch(_){ }
+      syncScheduleDownloadActions(renderableBest, tab.opts || {});
       renderLoadedMaterias();
     } else {
       summaryEl.innerHTML = '';
       selectedEl.innerHTML = '';
       if (scheduleEl) { scheduleEl.classList.add('empty'); scheduleEl.innerHTML = ''; }
+      syncScheduleDownloadActions(null, null);
       window.__currentScheduleSelections = {};
       renderLoadedMaterias();
     }
@@ -2028,6 +2148,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
     summaryEl.innerHTML = '';
     selectedEl.innerHTML = '';
     if (scheduleEl) { scheduleEl.classList.add('empty'); scheduleEl.innerHTML = ''; }
+    syncScheduleDownloadActions(null, null);
     // Solo limpiar selección de grupos, no desmarcar materias cargadas
     window.__currentScheduleSelections = {};
     renderLoadedMaterias();
@@ -2273,6 +2394,7 @@ async function loadRepoFromRepo(){
       if (!resultados || (Array.isArray(resultados) && !resultados.length)){
         setGenerationProgress({ state: 'done', text: timedOut ? 'Tiempo agotado sin resultados parciales.' : 'Analisis completado. No se encontro un horario.', percent: 100 });
         statusEl.textContent = timedOut ? 'Tiempo agotado sin encontrar un horario viable.' : 'No se encontró horario.';
+        showSchedulerMessage('No se encontró un horario óptimo', buildNoScheduleReasonHtml(lastRunTimings, opts, timedOut));
         renderTimingSummary(summaryEl, complexityEstimate, lastRunTimings);
         return;
       }
@@ -2284,6 +2406,7 @@ async function loadRepoFromRepo(){
         statusEl.textContent = timedOut
           ? 'Tiempo agotado y no se encontró un horario parcial que cumpla las restricciones.'
           : 'No se encontró un horario que cumpla las restricciones.';
+        showSchedulerMessage('No se encontró un horario válido', buildNoScheduleReasonHtml(lastRunTimings, opts, timedOut));
         renderTimingSummary(summaryEl, complexityEstimate, lastRunTimings);
         return;
       }
@@ -2315,11 +2438,6 @@ async function loadRepoFromRepo(){
       saveScheduleTabsCache(window.__scheduleTabs, window.__activeScheduleId);
       renderScheduleTabUI();
       setActiveSchedule(window.__activeScheduleId);
-
-      const downloadBtn = document.getElementById('downloadBtn');
-      const downloadExcelBtn = document.getElementById('downloadExcelBtn');
-      const activeBest = resultList[0];
-      try{ renderScheduleSVG(activeBest, opts); if (downloadBtn) { downloadBtn.classList.remove('hidden'); downloadBtn.onclick = ()=> downloadScheduleSVG(activeBest, opts); } if (downloadExcelBtn) { downloadExcelBtn.classList.remove('hidden'); downloadExcelBtn.onclick = ()=> downloadScheduleExcel(); } }catch(e){ console.warn('No se pudo renderizar imagen del horario', e); if (scheduleEl) scheduleEl.innerHTML = ''; }
     }catch(err){
       if (err && err.name === 'SchedulerCancelledError'){
         setGenerationProgress({ state: 'cancelled', text: 'Calculo cancelado.', percent: 100 });
@@ -2725,6 +2843,90 @@ async function loadRepoFromRepo(){
     renderCmGrupos();
   });
 
+  async function reloadDatabaseMateriasForCurrentSelection(options = {}){
+    const {
+      preserveStatus = false,
+      successMessage,
+      emptyMessage,
+    } = options;
+    const f = universidadSelect ? universidadSelect.value : null;
+    const carrera = carreraImportSelect ? carreraImportSelect.value : '';
+    if (!f){
+      if (!preserveStatus) statusEl.textContent = 'Selecciona una universidad.';
+      return false;
+    }
+    if (!carrera){
+      if (!preserveStatus) statusEl.textContent = 'Selecciona una carrera.';
+      return false;
+    }
+
+    const historialResumen = window.__historialResumen || { aprobadas: [], creditosAprobados: 0 };
+    const aprobadasRaw = Array.isArray(historialResumen.aprobadas) ? historialResumen.aprobadas : [];
+    const aprobadas = aprobadasRaw.map(s=> s.split(' - ')[0] || s);
+    const historialTxt = historialText ? historialText.value : '';
+
+    clearSchedulerMessage();
+    if (!preserveStatus) statusEl.textContent = `Actualizando materias para ${carrera}...`;
+
+    const universidad = fuenteToUniversidad(f);
+    const sede = sedeSelect ? sedeSelect.value : '';
+    const facultad = facultadSelect ? facultadSelect.value : '';
+    const { data, fromCache } = await fetchMateriasFromApi({ fuente: f, universidad, sede, facultad, carrera, aprobadas, historial: historialTxt });
+
+    const aprobadasDict = buildHistorialAprobadasLookup(aprobadasRaw, historialResumen);
+    const hasEnglishApproved = (aprobadasDict.__names || []).some(n=> n.includes('ingles') || n.includes('inglés') || n.includes('intensivo') || n.includes('virtual')) || Object.keys(aprobadasDict).some(k=> k.includes('ing'));
+    const filtered = (data || []).filter(d=>{
+      const nombre = String(d && d.nombre ? d.nombre : '').toLowerCase();
+      if (hasEnglishApproved && (nombre.includes('ingles') || nombre.includes('inglés') || nombre.includes('intensivo') || nombre.includes('virtual'))){
+        return false;
+      }
+      return cumplePrereqsJS(d, aprobadasDict);
+    });
+
+    const mapped = mapRepoMaterias(filtered || [], { fuente: f });
+    applyDefaultExcludedGroupsForFuente(mapped, f);
+
+    const currentLoaded = window.__lastLoaded || [];
+    const manualItems = currentLoaded.filter(item => !!item.__manual);
+    const nextLoaded = mergeMateriasLists(mapped, manualItems);
+    const dbKeys = new Set(mapped.map(item => getMateriaKey(item)));
+    const nextKeys = new Set(nextLoaded.map(item => getMateriaKey(item)));
+
+    window.__lastLoaded = nextLoaded;
+    window.__lastLoadedFiltered = (window.__lastLoadedFiltered || []).filter(item => item.__manual || dbKeys.has(getMateriaKey(item)));
+
+    const currentSelections = window.__currentScheduleSelections || {};
+    for (const nombre of Object.keys(currentSelections)){
+      const stillExists = nextLoaded.some(item => item.nombre === nombre);
+      if (!stillExists) delete currentSelections[nombre];
+    }
+    window.__currentScheduleSelections = currentSelections;
+
+    if (window.__expandedMaterias && window.__expandedMaterias.size){
+      window.__expandedMaterias = new Set(Array.from(window.__expandedMaterias).filter(nombre => nextLoaded.some(item => item.nombre === nombre)));
+    }
+
+    if (window.__manualCache && window.__manualCache.length){
+      window.__lastLoaded = mergeMateriasLists(window.__lastLoaded, window.__manualCache);
+    }
+
+    saveMateriasCache();
+    updateScheduleWithNewSelection();
+    try{ renderLoadedMaterias(); }catch(_){ }
+    try{ if(typeof window.__renderSelectedFromBest==='function') window.__renderSelectedFromBest((window.__scheduleTabs||[]).find(t=>t.id===window.__activeScheduleId)?.best || { materias: [] }); }catch(_){ }
+    clearSchedulerMessage();
+
+    if (!preserveStatus){
+      if (mapped.length){
+        statusEl.textContent = successMessage || `Se actualizaron ${mapped.length} materias desde la base de datos ${fromCache ? '(caché)' : '(API)'}.`;
+      } else {
+        statusEl.textContent = emptyMessage || 'No hay materias disponibles desde la base de datos para la selección actual.';
+      }
+    }
+
+    return true;
+  }
+
   document.getElementById('cmAddMateriaBtn')?.addEventListener('click', ()=>{
     const cmStatus = document.getElementById('cmStatus');
     const nombre = (document.getElementById('cmNombre')?.value||'').trim();
@@ -2762,41 +2964,36 @@ async function loadRepoFromRepo(){
     await refreshCarreraSelector();
   };
 
+  reloadDbMateriasBtn?.addEventListener('click', async ()=>{
+    const hasDbLoadedMaterias = (window.__lastLoaded || []).some(item => !item.__manual);
+    if (!hasDbLoadedMaterias){
+      statusEl.textContent = 'No hay materias cargadas desde la base de datos para recargar.';
+      return;
+    }
+    try{
+      await reloadDatabaseMateriasForCurrentSelection({
+        successMessage: 'Cupos y grupos actualizados desde la base de datos.',
+        emptyMessage: 'No quedaron materias visibles desde la base de datos con la selección actual.',
+      });
+    }catch(err){
+      statusEl.textContent = `Error recargando cupos desde base de datos: ${err.message}`;
+      showError('Error recargando cupos desde base de datos', err);
+    }
+  });
+
   if (carreraImportSelect) carreraImportSelect.onchange = async (e)=>{
     if (window.__hasManualCache && (!e || !e.isTrusted)) return;
-    const f = universidadSelect ? universidadSelect.value : null; if (!f){ statusEl.textContent='Selecciona una universidad.'; return; }
-    const carrera = carreraImportSelect.value; if (!carrera){ statusEl.textContent='Selecciona una carrera.'; return; }
-    clearSchedulerMessage();
-    statusEl.textContent = `Cargando materias para ${carrera}...`;
-    const historialResumen = window.__historialResumen || { aprobadas: [], creditosAprobados: 0 };
-    const aprobadasRaw = Array.isArray(historialResumen.aprobadas) ? historialResumen.aprobadas : [];
-    const aprobadas = aprobadasRaw.map(s=> s.split(' - ')[0] || s);
-    const historialTxt = historialText ? historialText.value : '';
     try{
-      const universidad = fuenteToUniversidad(f);
-      const sede = sedeSelect ? sedeSelect.value : '';
-      const facultad = facultadSelect ? facultadSelect.value : '';
-      const { data, fromCache } = await fetchMateriasFromApi({ fuente: f, universidad, sede, facultad, carrera, aprobadas, historial: historialTxt });
-      const aprobadasDict = buildHistorialAprobadasLookup(aprobadasRaw, historialResumen);
-      const hasEnglishApproved = (aprobadasDict.__names || []).some(n=> n.includes('ingles') || n.includes('inglés') || n.includes('intensivo') || n.includes('virtual')) || Object.keys(aprobadasDict).some(k=> k.includes('ing'));
-      const filtered = (data || []).filter(d=>{
-        const nombre = String(d && d.nombre ? d.nombre : '').toLowerCase();
-        if (hasEnglishApproved && (nombre.includes('ingles') || nombre.includes('inglés') || nombre.includes('intensivo') || nombre.includes('virtual'))){
-          return false;
-        }
-        return cumplePrereqsJS(d, aprobadasDict);
+      const carrera = carreraImportSelect.value;
+      statusEl.textContent = `Cargando materias para ${carrera}...`;
+      await reloadDatabaseMateriasForCurrentSelection({
+        preserveStatus: true,
+        successMessage: 'Materias actualizadas desde base de datos.',
       });
-      const mapped = mapRepoMaterias(filtered || [], { fuente: f });
-      applyDefaultExcludedGroupsForFuente(mapped, f);
-      window.__lastLoaded = mergeMateriasLists(window.__lastLoaded || [], mapped);
-      if (window.__manualCache && window.__manualCache.length){
-        window.__lastLoaded = mergeMateriasLists(window.__lastLoaded, window.__manualCache);
-      }
-      window.__lastLoadedFiltered = (window.__lastLoadedFiltered || []).filter(x => !mapped.some(m => m.nombre === x.nombre));
-      saveMateriasCache();
-      try{ renderLoadedMaterias(); }catch(e){}
-      clearSchedulerMessage();
-      statusEl.textContent = `Se cargaron ${mapped.length} materias desde la historia académica ${fromCache ? '(caché)' : '(API)'}.`;
+      const hasCached = (window.__lastLoaded || []).some(item => !item.__manual);
+      statusEl.textContent = hasCached
+        ? 'Se cargaron materias desde la base de datos.'
+        : 'No se encontraron materias desde la base de datos para la selección actual.';
     }catch(err){
       statusEl.textContent = `Error cargando materias desde base de datos: ${err.message}`;
       showError('Error cargando materias desde base de datos', err);
@@ -2871,7 +3068,7 @@ async function loadRepoFromRepo(){
   let histDebounce = null;
   historialText.addEventListener('input', ()=>{
     clearTimeout(histDebounce);
-    histDebounce = setTimeout(()=>{
+    histDebounce = setTimeout(async ()=>{
       const txt = (historialText.value||'').trim();
       if (!txt){
         persistHistorialResumen({ aprobadas: [], creditosAprobados: 0 });
@@ -2889,6 +3086,18 @@ async function loadRepoFromRepo(){
       renderHistorialAprobadas(resumen, { title: 'Aprobadas extraídas', emptyText: 'Historial vacío.' });
       historialText.value = '';
       statusEl.textContent = `Historial procesado. Materias aprobadas: ${resumen.aprobadas.length}${resumen.creditosAprobados > 0 ? ` · Créditos aprobados: ${resumen.creditosAprobados}` : ''}`;
+      const hasDbLoadedMaterias = (window.__lastLoaded || []).some(item => !item.__manual);
+      if (hasDbLoadedMaterias && carreraImportSelect && carreraImportSelect.value){
+        try{
+          await reloadDatabaseMateriasForCurrentSelection({
+            successMessage: `Historial procesado y materias recalculadas. Visibles: ${(window.__lastLoaded || []).filter(item => !item.__manual).length}`,
+            emptyMessage: 'Historial procesado. No quedaron materias visibles desde la base de datos.',
+          });
+        }catch(err){
+          statusEl.textContent = `Historial procesado, pero no se pudo recalcular la base de datos: ${err.message}`;
+          showError('Error recalculando materias tras procesar historial', err);
+        }
+      }
     }, 500);
   });
 
@@ -2953,6 +3162,7 @@ function mapRepoMaterias(data, options = {}){
   }
 
   return (data||[]).map(m=>({
+    codigo: m.codigo || m.Codigo || '',
     nombre: m.nombre,
     creditos: m.creditos || 0,
     tipologia: m.tipologia || m.Tipologia || '',
@@ -3085,7 +3295,9 @@ function renderScheduleSVG(best, opts){
 
   // slots
   for (const g of best.comb){
-    const color = stringToColor(g.materiaNombre || '')
+    const color = stringToColor(g.materiaNombre || '');
+    const textColor = textColorForBackground(color);
+    const borderColor = darkenHexColor(color, 0.22);
     const grupoLabel = cleanGrupoLabel(g.grupo);
     for (const c of (g.horarios||[])){
       const dia = (c.dia||'').toUpperCase(); const di = days.indexOf(dia); if (di<0) continue;
@@ -3095,11 +3307,11 @@ function renderScheduleSVG(best, opts){
       const w = colW - 8; const h = (h1-h0)*rowH - 8;
       const lugarLabel = (c.lugar||'').trim();
       const text = `${g.materiaNombre||''}${grupoLabel? ' (G' + grupoLabel + ')' : ''}`;
-      svg += `<rect class="slot" x="${x}" y="${y}" width="${w}" height="${h}" rx="6" ry="6" fill="${color}" />`;
+      svg += `<rect class="slot" x="${x}" y="${y}" width="${w}" height="${h}" rx="6" ry="6" fill="${color}" stroke="${borderColor}" stroke-width="1.2" />`;
       // use foreignObject to allow wrapped text inside the colored slot
-      const foHtml = `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${w-8}px;height:${Math.max(16, h-8)}px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;padding:4px;font:11px/1.25 sans-serif;color:#fff;">
+      const foHtml = `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${w-8}px;height:${Math.max(16, h-8)}px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;padding:4px;font:11px/1.25 sans-serif;color:${textColor};text-shadow:0 1px 1px rgba(0,0,0,0.24);">
         <div style="word-break:break-word;overflow-wrap:break-word;white-space:normal">${escapeXml(text)}</div>
-        ${lugarLabel ? `<div style="word-break:break-word;overflow-wrap:break-word;white-space:normal;font-size:10px;opacity:.85;margin-top:2px">${escapeXml(lugarLabel)}</div>` : ''}
+        ${lugarLabel ? `<div style="word-break:break-word;overflow-wrap:break-word;white-space:normal;font-size:10px;opacity:.92;margin-top:2px">${escapeXml(lugarLabel)}</div>` : ''}
       </div>`;
       svg += `<foreignObject x="${x+4}" y="${y+4}" width="${w-8}" height="${Math.max(16, h-8)}">${foHtml}</foreignObject>`;
     }
@@ -3122,11 +3334,15 @@ function downloadScheduleSVG(best, opts){
   const a = document.createElement('a'); a.href = url; a.download = 'horario.svg'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-function downloadScheduleExcel(){
+async function downloadScheduleExcel(){
   const scheduleEl = document.getElementById('schedule');
   if (!scheduleEl || !scheduleEl._lastBest) return;
   const best = scheduleEl._lastBest;
   if (!best || !best.comb || !best.comb.length) return;
+  if (!window.ExcelJS) {
+    showError('No se pudo preparar el archivo Excel', new Error('La libreria ExcelJS no esta disponible.'));
+    return;
+  }
 
   const DIAS_ORDER = ['LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO'];
   const DIAS_LABEL = {LUNES:'Lunes',MARTES:'Martes','MIÉRCOLES':'Miércoles',JUEVES:'Jueves',VIERNES:'Viernes','SÁBADO':'Sábado',DOMINGO:'Domingo'};
@@ -3144,100 +3360,259 @@ function downloadScheduleExcel(){
   }
   if (!usedDays.size) return;
   if (startHour >= endHour){ startHour = 7; endHour = 20; }
-  const days = DIAS_ORDER.filter(d => usedDays.has(d));
+  const days = DIAS_ORDER.filter(d => d === 'SÁBADO' || d === 'DOMINGO' ? usedDays.has(d) : true);
 
   function cleanGrupoLabelXls(raw){
     if (!raw && raw !== 0) return '';
     return String(raw).trim().replace(/^\s*(?:Grupo|G)\.?\s*/i,'');
   }
 
-  // Armar grilla: grid[hora][dia] = texto de celda
-  const grid = {};
-  for (let h = startHour; h < endHour; h++) grid[h] = {};
-  for (const g of best.comb){
-    const grupoLabel = cleanGrupoLabelXls(g.grupo);
-    const nombre = g.materiaNombre || (g.horarios && g.horarios[0] ? g.horarios[0].nombre : '') || '';
-    const cellText = nombre + (grupoLabel ? ' (G' + grupoLabel + ')' : '');
-    for (const c of (g.horarios||[])){
-      const dia = (c.dia||'').toUpperCase();
-      const h0 = parseInt((c.hora_inicio||c.inicio||'00:00').split(':')[0],10);
-      const h1 = parseInt((c.hora_fin||c.fin||'00:00').split(':')[0],10);
-      for (let h = h0; h < h1; h++){ if (grid[h]) grid[h][dia] = cellText; }
+  function buildExcelCellText(grupo, clase){
+    const grupoLabel = cleanGrupoLabelXls(grupo.grupo);
+    const nombre = grupo.materiaNombre || (clase && clase.nombre) || (grupo.horarios && grupo.horarios[0] ? grupo.horarios[0].nombre : '') || '';
+    const lugar = String((clase && clase.lugar) || '').trim();
+    return `${nombre}${grupoLabel ? ' (G' + grupoLabel + ')' : ''}${lugar ? '\n' + lugar : ''}`;
+  }
+
+  function buildExcelMergeMap(){
+    const mergeMap = {};
+    for (const d of days) mergeMap[d] = {};
+    for (const g of best.comb){
+      for (const c of (g.horarios || [])){
+        const dia = (c.dia || '').toUpperCase();
+        if (!days.includes(dia)) continue;
+        const h0 = parseInt((c.hora_inicio || c.inicio || '00:00').split(':')[0], 10);
+        const h1 = parseInt((c.hora_fin || c.fin || '00:00').split(':')[0], 10);
+        if (!Number.isFinite(h0) || !Number.isFinite(h1) || h1 <= h0) continue;
+        mergeMap[dia][h0] = {
+          text: buildExcelCellText(g, c),
+          materia: g.materiaNombre || (c && c.nombre) || '',
+          mergeDown: Math.max(0, h1 - h0 - 1)
+        };
+        for (let h = h0 + 1; h < h1; h++) mergeMap[dia][h] = { skip: true };
+      }
+    }
+    return mergeMap;
+  }
+
+  const scheduleMergeMap = buildExcelMergeMap();
+  const materiaStyleMap = new Map();
+  function styleForMateria(nombre){
+    const key = String(nombre || '').trim() || 'Materia';
+    if (materiaStyleMap.has(key)) return materiaStyleMap.get(key);
+    const color = stringToColor(key);
+    const borderColor = darkenHexColor(color, 0.24);
+    const textColor = textColorForBackground(color);
+    const style = {
+      alignment: { vertical: 'middle', horizontal: 'center', wrapText: true },
+      font: { bold: true, color: { argb: textColor.replace('#', '') } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: color.replace('#', '') } },
+      border: {
+        top: { style: 'thin', color: { argb: borderColor.replace('#', '') } },
+        left: { style: 'thin', color: { argb: borderColor.replace('#', '') } },
+        bottom: { style: 'thin', color: { argb: borderColor.replace('#', '') } },
+        right: { style: 'thin', color: { argb: borderColor.replace('#', '') } }
+      }
+    };
+    materiaStyleMap.set(key, style);
+    return style;
+  }
+  const workbook = new window.ExcelJS.Workbook();
+  workbook.creator = 'Sigma Planner';
+  workbook.created = new Date();
+  const worksheet = workbook.addWorksheet('Horario', {
+    views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }]
+  });
+
+  worksheet.columns = [
+    { header: 'Hora', key: 'hora', width: 16 },
+    ...days.map(d => ({ header: DIAS_LABEL[d] || d, key: d, width: 24 }))
+  ];
+
+  const borderSoft = {
+    top: { style: 'thin', color: { argb: 'CBD5E1' } },
+    left: { style: 'thin', color: { argb: 'CBD5E1' } },
+    bottom: { style: 'thin', color: { argb: 'CBD5E1' } },
+    right: { style: 'thin', color: { argb: 'CBD5E1' } }
+  };
+  const borderDark = {
+    top: { style: 'thin', color: { argb: '0F172A' } },
+    left: { style: 'thin', color: { argb: '0F172A' } },
+    bottom: { style: 'thin', color: { argb: '0F172A' } },
+    right: { style: 'thin', color: { argb: '0F172A' } }
+  };
+
+  const applyCellStyle = (cell, style) => {
+    if (style.alignment) cell.alignment = style.alignment;
+    if (style.font) cell.font = style.font;
+    if (style.fill) cell.fill = style.fill;
+    if (style.border) cell.border = style.border;
+  };
+
+  const headerStyle = {
+    alignment: { vertical: 'middle', horizontal: 'center' },
+    font: { bold: true, color: { argb: 'FFFFFF' }, size: 11 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '152033' } },
+    border: borderDark
+  };
+  const timeStyle = {
+    alignment: { vertical: 'middle', horizontal: 'center' },
+    font: { bold: true, color: { argb: '0F172A' }, size: 10 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E2E8F0' } },
+    border: borderSoft
+  };
+  const emptyStyle = {
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } },
+    border: borderSoft
+  };
+  const sectionStyle = {
+    alignment: { vertical: 'middle', horizontal: 'left' },
+    font: { bold: true, color: { argb: 'FFFFFF' }, size: 12 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E293B' } },
+    border: borderDark
+  };
+  const tableHeaderStyle = {
+    alignment: { vertical: 'middle', horizontal: 'center' },
+    font: { bold: true, color: { argb: 'FFFFFF' }, size: 10 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: '334155' } },
+    border: borderDark
+  };
+  const textCellStyle = {
+    alignment: { vertical: 'middle', wrapText: true },
+    font: { color: { argb: '0F172A' }, size: 10 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } },
+    border: borderSoft
+  };
+  const numberCellStyle = {
+    alignment: { vertical: 'middle', horizontal: 'center' },
+    font: { color: { argb: '0F172A' }, size: 10 },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } },
+    border: borderSoft
+  };
+
+  const headerRow = worksheet.getRow(1);
+  headerRow.values = ['Hora', ...days.map(d => DIAS_LABEL[d] || d)];
+  headerRow.height = 24;
+  headerRow.eachCell(cell => applyCellStyle(cell, headerStyle));
+
+  for (let h = startHour; h < endHour; h++) {
+    const rowNumber = 2 + (h - startHour);
+    const row = worksheet.getRow(rowNumber);
+    row.height = 32;
+    const timeCell = row.getCell(1);
+    timeCell.value = `${String(h).padStart(2, '0')}:00 - ${String(h + 1).padStart(2, '0')}:00`;
+    applyCellStyle(timeCell, timeStyle);
+
+    for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+      const dia = days[dayIndex];
+      const col = dayIndex + 2;
+      const cellInfo = (scheduleMergeMap[dia] && scheduleMergeMap[dia][h]) || null;
+      if (cellInfo && cellInfo.skip) continue;
+      const cell = row.getCell(col);
+      if (cellInfo && cellInfo.text) {
+        cell.value = cellInfo.text;
+        applyCellStyle(cell, styleForMateria(cellInfo.materia));
+        if (cellInfo.mergeDown > 0) {
+          worksheet.mergeCells(rowNumber, col, rowNumber + cellInfo.mergeDown, col);
+          applyCellStyle(worksheet.getCell(rowNumber, col), styleForMateria(cellInfo.materia));
+        }
+      } else {
+        cell.value = '';
+        applyCellStyle(cell, emptyStyle);
+      }
     }
   }
 
-  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  let nextRowNumber = 2 + (endHour - startHour) + 2;
+  const sectionCell = worksheet.getCell(nextRowNumber, 1);
+  sectionCell.value = 'Materias seleccionadas';
+  worksheet.mergeCells(nextRowNumber, 1, nextRowNumber, Math.max(4, days.length + 1));
+  applyCellStyle(sectionCell, sectionStyle);
+  worksheet.getRow(nextRowNumber).height = 24;
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n`;
-  xml += `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel">\n`;
-  xml += `<Styles>\n`;
-  xml += `  <Style ss:ID="s_hd"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/><Interior ss:Color="#1A1A2E" ss:Pattern="Solid"/></Style>\n`;
-  xml += `  <Style ss:ID="s_time"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:Bold="1" ss:Size="10"/></Style>\n`;
-  xml += `  <Style ss:ID="s_sub"><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/><Font ss:Size="10"/><Interior ss:Color="#DDE8FF" ss:Pattern="Solid"/></Style>\n`;
-  xml += `  <Style ss:ID="s_emp"><Interior ss:Color="#F0F0F0" ss:Pattern="Solid"/></Style>\n`;
-  xml += `  <Style ss:ID="s_sec"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="12"/><Interior ss:Color="#2B3A55" ss:Pattern="Solid"/><Alignment ss:Horizontal="Left" ss:Vertical="Center"/></Style>\n`;
-  xml += `  <Style ss:ID="s_ch"><Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="10"/><Interior ss:Color="#4A5568" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>\n`;
-  xml += `  <Style ss:ID="s_dat"><Alignment ss:Vertical="Center" ss:WrapText="1"/><Font ss:Size="10"/></Style>\n`;
-  xml += `  <Style ss:ID="s_num"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:Size="10"/></Style>\n`;
-  xml += `</Styles>\n`;
-  xml += `<Worksheet ss:Name="Horario">\n<Table ss:DefaultRowHeight="30">\n`;
-  xml += `<Column ss:Width="95"/>\n`;
-  for (const d of days) xml += `<Column ss:Width="125"/>\n`;
+  nextRowNumber += 1;
+  const labels = ['Materia', 'Grupo', 'Créditos', 'Profesor'];
+  labels.forEach((label, index) => {
+    const cell = worksheet.getCell(nextRowNumber, index + 1);
+    cell.value = label;
+    applyCellStyle(cell, tableHeaderStyle);
+  });
+  worksheet.getRow(nextRowNumber).height = 22;
 
-  // Fila de cabecera de días
-  xml += `<Row ss:Height="28">\n  <Cell ss:StyleID="s_hd"><Data ss:Type="String">Hora</Data></Cell>\n`;
-  for (const d of days) xml += `  <Cell ss:StyleID="s_hd"><Data ss:Type="String">${esc(DIAS_LABEL[d]||d)}</Data></Cell>\n`;
-  xml += `</Row>\n`;
-
-  // Filas por hora
-  for (let h = startHour; h < endHour; h++){
-    xml += `<Row ss:Height="36">\n  <Cell ss:StyleID="s_time"><Data ss:Type="String">${String(h).padStart(2,'0')}:00 – ${String(h+1).padStart(2,'0')}:00</Data></Cell>\n`;
-    for (const d of days){
-      const val = (grid[h] && grid[h][d]) || '';
-      xml += val ? `  <Cell ss:StyleID="s_sub"><Data ss:Type="String">${esc(val)}</Data></Cell>\n`
-                 : `  <Cell ss:StyleID="s_emp"><Data ss:Type="String"></Data></Cell>\n`;
-    }
-    xml += `</Row>\n`;
-  }
-
-  // Separador
-  xml += `<Row ss:Height="14"><Cell><Data ss:Type="String"></Data></Cell></Row>\n`;
-  xml += `<Row ss:Height="14"><Cell><Data ss:Type="String"></Data></Cell></Row>\n`;
-
-  // Título sección
-  xml += `<Row ss:Height="28">\n  <Cell ss:StyleID="s_sec" ss:MergeAcross="${days.length}"><Data ss:Type="String">Materias seleccionadas</Data></Cell>\n</Row>\n`;
-
-  // Cabecera tabla materias
-  xml += `<Row ss:Height="24">\n`;
-  for (const h of ['Materia','Grupo','Créditos','Profesor']) xml += `  <Cell ss:StyleID="s_ch"><Data ss:Type="String">${h}</Data></Cell>\n`;
-  xml += `</Row>\n`;
-
-  // Filas de materias
-  for (const g of best.comb){
+  for (const g of best.comb) {
+    nextRowNumber += 1;
     const grupoLabel = cleanGrupoLabelXls(g.grupo);
     const nombre = g.materiaNombre || (g.horarios && g.horarios[0] ? g.horarios[0].nombre : '') || '';
     const profesor = g.profesor || (g.horarios && g.horarios[0] ? g.horarios[0].profesor : '') || 'No disponible';
     const creditos = g.creditos || 0;
-    xml += `<Row ss:Height="24">\n`;
-    xml += `  <Cell ss:StyleID="s_dat"><Data ss:Type="String">${esc(nombre)}</Data></Cell>\n`;
-    xml += `  <Cell ss:StyleID="s_dat"><Data ss:Type="String">${esc(grupoLabel ? 'G' + grupoLabel : String(g.grupo||''))}</Data></Cell>\n`;
-    xml += `  <Cell ss:StyleID="s_num"><Data ss:Type="Number">${creditos}</Data></Cell>\n`;
-    xml += `  <Cell ss:StyleID="s_dat"><Data ss:Type="String">${esc(profesor)}</Data></Cell>\n`;
-    xml += `</Row>\n`;
+    const row = worksheet.getRow(nextRowNumber);
+    row.height = 22;
+    row.getCell(1).value = nombre;
+    row.getCell(2).value = grupoLabel ? `G${grupoLabel}` : String(g.grupo || '');
+    row.getCell(3).value = creditos;
+    row.getCell(4).value = profesor;
+    applyCellStyle(row.getCell(1), textCellStyle);
+    applyCellStyle(row.getCell(2), textCellStyle);
+    applyCellStyle(row.getCell(3), numberCellStyle);
+    applyCellStyle(row.getCell(4), textCellStyle);
   }
 
-  xml += `</Table>\n</Worksheet>\n</Workbook>`;
-
-  const blob = new Blob([xml], {type:'application/vnd.ms-excel'});
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'horario.xls'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'horario.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function escapeXml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function getCourseColorPalette(){
+  return [
+    { color: '#1D4ED8', borderColor: '#1E3A8A', textColor: 'FFFFFF' },
+    { color: '#0F766E', borderColor: '#115E59', textColor: 'FFFFFF' },
+    { color: '#B45309', borderColor: '#92400E', textColor: 'FFFFFF' },
+    { color: '#BE123C', borderColor: '#9F1239', textColor: 'FFFFFF' },
+    { color: '#6D28D9', borderColor: '#5B21B6', textColor: 'FFFFFF' },
+    { color: '#0369A1', borderColor: '#075985', textColor: 'FFFFFF' },
+    { color: '#166534', borderColor: '#14532D', textColor: 'FFFFFF' },
+    { color: '#9A3412', borderColor: '#7C2D12', textColor: 'FFFFFF' },
+    { color: '#334155', borderColor: '#1E293B', textColor: 'FFFFFF' },
+    { color: '#C2410C', borderColor: '#9A3412', textColor: 'FFFFFF' }
+  ];
+}
+
+function normalizeHexColor(hex){
+  const raw = String(hex || '').replace('#', '').trim();
+  if (raw.length === 3) return `#${raw.split('').map(ch => ch + ch).join('')}`.toUpperCase();
+  return `#${raw.padStart(6, '0').slice(0, 6)}`.toUpperCase();
+}
+
+function darkenHexColor(hex, amount = 0.2){
+  const color = normalizeHexColor(hex);
+  const factor = Math.max(0, Math.min(1, 1 - amount));
+  const channels = [1, 3, 5].map(offset => Math.max(0, Math.min(255, Math.round(parseInt(color.slice(offset, offset + 2), 16) * factor))));
+  return `#${channels.map(value => value.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+}
+
+function textColorForBackground(hex){
+  const color = normalizeHexColor(hex);
+  const [r, g, b] = [1, 3, 5].map(offset => parseInt(color.slice(offset, offset + 2), 16));
+  const luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+  return luminance > 160 ? '#0F172A' : '#FFFFFF';
+}
+
 function stringToColor(s){
-  let h=0; for (let i=0;i<s.length;i++) h = s.charCodeAt(i) + ((h<<5)-h);
-  const c = (h & 0x00FFFFFF).toString(16).toUpperCase(); return '#' + '00000'.slice(0,6-c.length) + c;
+  const palette = getCourseColorPalette();
+  const label = String(s || '').trim();
+  let hash = 0;
+  for (let i = 0; i < label.length; i++) hash = label.charCodeAt(i) + ((hash << 5) - hash);
+  const index = Math.abs(hash) % palette.length;
+  return palette[index].color;
 }
 
 // Display errors helper

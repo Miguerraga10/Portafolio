@@ -34,6 +34,11 @@ body {
   padding: 1.4rem;
 }
 
+img,
+svg {
+  max-width: 100%;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -1168,6 +1173,17 @@ textarea::placeholder {
   line-height: 1.65;
 }
 
+.lesson-numbered-list {
+  margin: 0;
+  padding-left: 1.4rem;
+  color: #d5e2f5;
+}
+
+.lesson-numbered-list li {
+  margin-bottom: 0.45rem;
+  line-height: 1.65;
+}
+
 .lesson-formula-block {
   text-align: center;
   margin: 0.15rem 0;
@@ -1194,6 +1210,59 @@ textarea::placeholder {
   color: #ffffff;
   font-size: 1.16rem;
   letter-spacing: 0.02em;
+}
+
+.lesson-minor-heading {
+  margin: 0.15rem 0 0.45rem;
+  color: #bfe1ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.lesson-micro-heading {
+  margin: 0.1rem 0 0.3rem;
+  color: #9ecaff;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lesson-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid rgba(146, 170, 214, 0.16);
+  border-radius: 12px;
+  background: rgba(10, 15, 26, 0.58);
+}
+
+.lesson-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.lesson-table th,
+.lesson-table td {
+  padding: 0.72rem 0.8rem;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(146, 170, 214, 0.12);
+  color: #d9e8fb;
+}
+
+.lesson-table th {
+  color: #f4f8ff;
+  background: rgba(43, 139, 255, 0.12);
+  font-weight: 700;
+}
+
+.lesson-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.lesson-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .lesson-def-box {
@@ -1958,7 +2027,18 @@ textarea::placeholder {
 }
 
 @media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+
+  main {
+    width: 100%;
+    overflow-x: clip;
+  }
+
   .cards-grid,
+  .projects-grid,
+  .project-groups,
   .about-grid,
   .info-grid,
   .contact-form .row,
@@ -1967,8 +2047,44 @@ textarea::placeholder {
     display: grid;
   }
 
+  .carousel-section {
+    width: calc(100% - 2rem);
+    margin: 1rem auto;
+  }
+
+  .hero {
+    padding-top: 2.2rem;
+  }
+
+  .profile-img {
+    width: min(100%, 170px);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0 auto 1rem;
+    float: none;
+    display: block;
+  }
+
+  .projects-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lang-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem 0.9rem;
+    align-items: start;
+  }
+
   .lang-item {
     width: 100%;
+    min-width: 0;
+  }
+
+  .lang-item:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(100%, 160px);
   }
 
   .nav-actions {

@@ -56,6 +56,7 @@ function createClassModules(classItems) {
       description: item.description,
       content: item.content,
       topics: item.topics,
+      image: item.image,
       sourceFile: item.sourceFile
     };
   });
@@ -71,6 +72,1078 @@ function safeCreateModules(factoryFn) {
     }
     return createDefaultModules();
   }
+}
+
+function createMatematicas1Modules() {
+  const classModules = createClassModules([
+    {
+      id: "clase-1",
+      title: "Introducción a la lógica matemática y operaciones con enunciados",
+      image: "assets/course-matematicas-1-clase-1.svg",
+      description: "Primer bloque del curso enfocado en proposiciones, conectores lógicos, tablas de verdad e interpretación formal de enunciados.",
+      content: String.raw`## Objetivos de la clase
+
+Al finalizar esta clase, el estudiante estará en capacidad de:
+
+- Comprender qué es una proposición lógica.
+- Identificar proposiciones simples y compuestas.
+- Aplicar operaciones lógicas básicas.
+- Construir tablas de verdad.
+- Interpretar implicaciones y equivalencias lógicas.
+
+## Introducción a la lógica matemática
+
+La lógica matemática estudia la validez de los razonamientos usando símbolos y reglas formales. Su función principal es decidir cuándo un enunciado puede calificarse como verdadero o falso.
+
+Una proposición es un enunciado al que puede asignarse exactamente un valor de verdad:
+
+- Verdadero (V)
+- Falso (F)
+
+### Ejemplos rápidos
+
+| Enunciado | ¿Es proposición? | Valor de verdad |
+| --- | --- | --- |
+| "2 es un número primo" | Sí | V |
+| "5 es par" | Sí | F |
+| "¿Cómo estás?" | No | No aplica |
+| "x + 2 = 5" | No | Depende de \(x\) |
+
+## Proposiciones simples y compuestas
+
+### Proposición simple
+
+No contiene conectores lógicos.
+
+- \(p\): "Llueve"
+- \(q\): "Hace frío"
+
+### Proposición compuesta
+
+Se forma al combinar proposiciones simples mediante conectores.
+
+- "Llueve y hace frío"
+- "Si estudio, entonces apruebo"
+
+## Operaciones lógicas básicas
+
+### Negación
+
+La negación cambia el valor de verdad de una proposición.
+
+Símbolo: \(\neg p\)
+
+| \(p\) | \(\neg p\) |
+| --- | --- |
+| V | F |
+| F | V |
+
+### Conjunción
+
+Representa la idea de "y". Solo es verdadera cuando ambas proposiciones son verdaderas.
+
+Símbolo: \(p \land q\)
+
+| \(p\) | \(q\) | \(p \land q\) |
+| --- | --- | --- |
+| V | V | V |
+| V | F | F |
+| F | V | F |
+| F | F | F |
+
+### Disyunción
+
+Representa la idea de "o". Solo es falsa cuando ambas proposiciones son falsas.
+
+Símbolo: \(p \lor q\)
+
+| \(p\) | \(q\) | \(p \lor q\) |
+| --- | --- | --- |
+| V | V | V |
+| V | F | V |
+| F | V | V |
+| F | F | F |
+
+### Implicación
+
+Representa la estructura "si... entonces".
+
+Símbolo: \(p \rightarrow q\)
+
+| \(p\) | \(q\) | \(p \rightarrow q\) |
+| --- | --- | --- |
+| V | V | V |
+| V | F | F |
+| F | V | V |
+| F | F | V |
+
+### Equivalencia lógica
+
+Representa "si y solo si". Es verdadera cuando ambas proposiciones comparten el mismo valor de verdad.
+
+Símbolo: \(p \leftrightarrow q\)
+
+| \(p\) | \(q\) | \(p \leftrightarrow q\) |
+| --- | --- | --- |
+| V | V | V |
+| V | F | F |
+| F | V | F |
+| F | F | V |
+
+## Jerarquía de operadores lógicos
+
+Cuando una expresión tiene varios conectores, se recomienda resolver en este orden:
+
+1. Paréntesis
+2. Negación
+3. Conjunción
+4. Disyunción
+5. Implicación
+6. Equivalencia
+
+## Ejemplo guiado de tabla de verdad
+
+Construyamos la tabla de verdad de \((p \land q) \rightarrow p\).
+
+| \(p\) | \(q\) | \(p \land q\) | \((p \land q) \rightarrow p\) |
+| --- | --- | --- | --- |
+| V | V | V | V |
+| V | F | F | V |
+| F | V | F | V |
+| F | F | F | V |
+
+La expresión es verdadera en todos los casos. Por eso se clasifica como una tautología.
+
+## Fórmulas clave
+
+- Negación: \(\neg p\)
+- Conjunción: \(p \land q\)
+- Disyunción: \(p \lor q\)
+- Implicación: \(p \rightarrow q\)
+- Equivalencia: \(p \leftrightarrow q\)
+
+## Actividades interactivas
+
+DRAG::{"type":"categorize","title":"Proposiciones o no proposiciones","instruction":"Clasifica cada enunciado según corresponda.","bank":[{"items":["7 es primo","Cierra la puerta","x + 2 = 5","10 es múltiplo de 5","¿Qué hora es?"],"groups":["Proposición","No proposición"],"answers":{"7 es primo":"Proposición","Cierra la puerta":"No proposición","x + 2 = 5":"No proposición","10 es múltiplo de 5":"Proposición","¿Qué hora es?":"No proposición"}},{"items":["Medellín es la capital de Colombia","Hoy llueve en Bogotá","Estudia más","2 es un número par","x es mayor que 3"],"groups":["Proposición","No proposición"],"answers":{"Medellín es la capital de Colombia":"Proposición","Hoy llueve en Bogotá":"Proposición","Estudia más":"No proposición","2 es un número par":"Proposición","x es mayor que 3":"No proposición"}}]}
+
+DRAG::{"type":"match","title":"Conectores lógicos","instruction":"Relaciona cada símbolo con su significado verbal.","bank":[{"targets":["¬p","p ∧ q","p ∨ q","p → q","p ↔ q"],"items":["p si y solo si q","no p","p y q","si p, entonces q","p o q"],"answers":{"¬p":"no p","p ∧ q":"p y q","p ∨ q":"p o q","p → q":"si p, entonces q","p ↔ q":"p si y solo si q"}}]}
+
+DRAG::{"type":"choice","title":"Valores de verdad","instruction":"Selecciona la respuesta correcta en cada caso.","bank":[{"questions":[{"q":"Si p = V y q = F, ¿cuál es el valor de p ∧ q?","options":["V","F"],"answer":"F"},{"q":"Si p = V y q = F, ¿cuál es el valor de p → q?","options":["V","F"],"answer":"F"},{"q":"¿Cómo se clasifica p ∨ ¬p?","options":["Tautología","Contradicción","Contingencia"],"answer":"Tautología"},{"q":"Si p significa 'Estudio' y q significa 'Apruebo', ¿cómo se escribe 'Si estudio, entonces apruebo'?","options":["p ∧ q","p → q","p ↔ q"],"answer":"p → q"}]},{"questions":[{"q":"Si p = F y q = F, ¿cuál es el valor de p ∨ q?","options":["V","F"],"answer":"F"},{"q":"Si p = F y q = V, ¿cuál es el valor de p → q?","options":["V","F"],"answer":"V"},{"q":"¿Cuándo es verdadera p ↔ q?","options":["Cuando ambas tienen el mismo valor de verdad","Cuando al menos una es verdadera","Solo cuando p es verdadera"],"answer":"Cuando ambas tienen el mismo valor de verdad"},{"q":"¿Qué conector representa la palabra 'y'?","options":["∧","∨","→"],"answer":"∧"}]}]}
+
+DRAG::{"type":"choice","title":"Razonamiento lógico","instruction":"Analiza el argumento y responde.","bank":[{"word":"Si llueve, entonces llevo paraguas. Llueve. Por tanto, llevo paraguas.","questions":[{"q":"¿Qué forma lógica representa el argumento?","options":["p → q, p, luego q","p ∨ q, p, luego q","p ↔ q, q, luego p"],"answer":"p → q, p, luego q"},{"q":"¿El razonamiento es válido?","options":["Sí","No"],"answer":"Sí"}]},{"word":"Si estudio, entonces apruebo. No aprobé. Por tanto, no estudié.","questions":[{"q":"¿La conclusión está justificada por la información dada?","options":["Sí","No"],"answer":"Sí"},{"q":"¿Qué conector aparece en la premisa principal?","options":["Implicación","Conjunción","Equivalencia"],"answer":"Implicación"}]}]}`,
+      topics: [
+        "Proposiciones lógicas",
+        "Conectores lógicos",
+        "Tablas de verdad",
+        "Implicación y equivalencia",
+        "Jerarquía de operadores",
+        "Ejercicios de razonamiento"
+      ]
+    },
+    {
+      id: "clase-2",
+      title: "Inferencias lógicas y métodos de demostración",
+      image: "assets/course-matematicas-1-clase-2.svg",
+      description: "Segunda clase del curso centrada en argumentos válidos, reglas de inferencia y métodos básicos de demostración matemática.",
+      content: String.raw`## Objetivos de la clase
+
+Al finalizar esta clase, el estudiante estará en capacidad de:
+
+- Comprender qué es una inferencia lógica.
+- Identificar argumentos válidos e inválidos.
+- Aplicar reglas básicas de inferencia.
+- Conocer los principales métodos de demostración matemática.
+- Resolver ejercicios de razonamiento lógico y demostraciones simples.
+
+## Inferencias lógicas
+
+Una inferencia lógica consiste en obtener una conclusión a partir de una o varias premisas.
+
+### Estructura básica
+
+1. Premisa 1
+2. Premisa 2
+3. Conclusión
+
+### Ejemplo inicial
+
+- Si estudio, entonces apruebo.
+- Estudio.
+- Por lo tanto, apruebo.
+
+## Argumentos válidos e inválidos
+
+### Argumento válido
+
+La conclusión necesariamente se deduce de las premisas.
+
+| Premisa 1 | Premisa 2 | Conclusión |
+| --- | --- | --- |
+| \(p \rightarrow q\) | \(p\) | \(q\) |
+
+### Argumento inválido
+
+La conclusión no se deduce necesariamente de las premisas.
+
+| Premisa 1 | Premisa 2 | Conclusión |
+| --- | --- | --- |
+| \(p \rightarrow q\) | \(q\) | \(p\) |
+
+Este razonamiento puede ser falso. Por ejemplo:
+
+- Si llueve, la calle se moja.
+- La calle está mojada.
+- No necesariamente llovió.
+
+## Reglas de inferencia
+
+### Modus Ponens
+
+Si se sabe que \(p \rightarrow q\) y además \(p\), entonces se concluye \(q\).
+
+Fórmula importante:
+
+$$[(p\rightarrow q)\land p]\rightarrow q$$
+
+Ejemplo:
+
+- Si entreno, mejoro.
+- Entreno.
+- Entonces mejoro.
+
+### Modus Tollens
+
+Si se sabe que \(p \rightarrow q\) y además \(\neg q\), entonces se concluye \(\neg p\).
+
+Fórmula importante:
+
+$$[(p\rightarrow q)\land \neg q]\rightarrow \neg p$$
+
+Ejemplo:
+
+- Si estudio, apruebo.
+- No aprobé.
+- Entonces no estudié suficientemente.
+
+### Silogismo hipotético
+
+Si \(p \rightarrow q\) y \(q \rightarrow r\), entonces \(p \rightarrow r\).
+
+Fórmula importante:
+
+$$[(p\rightarrow q)\land (q\rightarrow r)]\rightarrow (p\rightarrow r)$$
+
+Ejemplo:
+
+- Si ahorro, invierto.
+- Si invierto, aumento mi capital.
+- Entonces, si ahorro, aumento mi capital.
+
+### Silogismo disyuntivo
+
+Si \(p \lor q\) y además \(\neg p\), entonces \(q\).
+
+Fórmula importante:
+
+$$[(p\lor q)\land \neg p]\rightarrow q$$
+
+Ejemplo:
+
+- Hoy estudio o descanso.
+- No descanso.
+- Entonces estudio.
+
+## Métodos de demostración
+
+### Demostración directa
+
+Consiste en partir de las premisas y llegar lógicamente a la conclusión.
+
+Ejemplo: demostrar que si un número es par, entonces su cuadrado es par.
+
+Si \(n = 2k\), entonces:
+
+$$n^2 = (2k)^2 = 4k^2 = 2(2k^2)$$
+
+Por tanto, \(n^2\) es par.
+
+### Demostración por contradicción
+
+Se supone falsa la conclusión y se busca llegar a una contradicción.
+
+Ejemplo clásico: demostrar que \(\sqrt{2}\) es irracional.
+
+Se asume que \(\sqrt{2} = \frac{b}{a}\) con \(a\) y \(b\) enteros sin factores comunes. Al desarrollar algebraicamente se concluye que ambos deben ser pares, lo cual contradice la hipótesis inicial.
+
+### Demostración por contraposición
+
+En lugar de demostrar \(p \rightarrow q\), se demuestra la proposición equivalente \(\neg q \rightarrow \neg p\).
+
+Fórmula importante:
+
+$$ (p\rightarrow q)\equiv(\neg q\rightarrow \neg p) $$
+
+Ejemplo: demostrar que si \(n^2\) es impar, entonces \(n\) es impar.
+
+Se demuestra la contrapositiva:
+
+- Si \(n\) es par, entonces \(n^2\) es par.
+
+## Tabla de verdad para validar argumentos
+
+Verifiquemos la expresión \([(p\rightarrow q)\land p]\rightarrow q\).
+
+| \(p\) | \(q\) | \(p\rightarrow q\) | \((p\rightarrow q)\land p\) | Resultado |
+| --- | --- | --- | --- | --- |
+| V | V | V | V | V |
+| V | F | F | F | V |
+| F | V | V | F | V |
+| F | F | V | F | V |
+
+La expresión siempre es verdadera, por lo tanto el argumento es válido.
+
+## Representaciones visuales
+
+### Reglas de inferencia
+
+- De condición y hecho afirmado a conclusión.
+- De condición y negación del resultado a negación de la causa.
+- De cadena de implicaciones a nueva implicación.
+- De alternativa y descarte a opción restante.
+
+### Métodos de demostración
+
+- Directa: premisas a conclusión.
+- Contradicción: suposición contraria a absurdo.
+- Contraposición: demostrar la forma equivalente más conveniente.
+
+## Actividades interactivas
+
+DRAG::{"type":"match","title":"Reglas de inferencia","instruction":"Relaciona cada esquema con su nombre correcto.","bank":[{"targets":["p→q, p, luego q","p→q, ¬q, luego ¬p","p→q, q→r, luego p→r","p∨q, ¬p, luego q"],"items":["Modus Ponens","Silogismo hipotético","Silogismo disyuntivo","Modus Tollens"],"answers":{"p→q, p, luego q":"Modus Ponens","p→q, ¬q, luego ¬p":"Modus Tollens","p→q, q→r, luego p→r":"Silogismo hipotético","p∨q, ¬p, luego q":"Silogismo disyuntivo"}}]}
+
+DRAG::{"type":"choice","title":"Validez de argumentos","instruction":"Analiza cada argumento y selecciona la opción correcta.","bank":[{"questions":[{"q":"Si entreno, mejoro. Mejoro. Entonces entreno. ¿Es válido?","options":["Sí","No"],"answer":"No"},{"q":"Si ahorro, invierto. Si invierto, aumento mi capital. Entonces, si ahorro, aumento mi capital. ¿Qué regla se usa?","options":["Silogismo hipotético","Modus Tollens","Silogismo disyuntivo"],"answer":"Silogismo hipotético"},{"q":"Si hago ejercicio, tengo buena salud. No tengo buena salud. Entonces no hago ejercicio. ¿Es válido?","options":["Sí","No"],"answer":"Sí"},{"q":"Si estudio, apruebo. Apruebo. Entonces estudié. ¿Qué ocurre?","options":["Es una falacia","Es Modus Ponens","Es una equivalencia válida"],"answer":"Es una falacia"}]},{"questions":[{"q":"Si estudio, apruebo. Estudio. Entonces apruebo. ¿Es válido?","options":["Sí","No"],"answer":"Sí"},{"q":"La regla p∨q, ¬p, luego q corresponde a:","options":["Silogismo disyuntivo","Modus Ponens","Contraposición"],"answer":"Silogismo disyuntivo"},{"q":"Demostrar ¬q→¬p en lugar de p→q corresponde a:","options":["Contraposición","Contradicción","Demostración directa"],"answer":"Contraposición"},{"q":"En una demostración por contradicción se busca llegar a:","options":["Una contradicción","Una tabla de verdad","Una definición nueva"],"answer":"Una contradicción"}]}]}
+
+DRAG::{"type":"categorize","title":"Métodos de demostración","instruction":"Clasifica cada situación según el método más natural.","bank":[{"items":["Partir de n=2k para probar que n² es par","Suponer falsa la conclusión y llegar a absurdo","Demostrar ¬q→¬p en lugar de p→q","Probar que la suma de dos pares es par desde su definición"],"groups":["Directa","Contradicción","Contraposición"],"answers":{"Partir de n=2k para probar que n² es par":"Directa","Suponer falsa la conclusión y llegar a absurdo":"Contradicción","Demostrar ¬q→¬p en lugar de p→q":"Contraposición","Probar que la suma de dos pares es par desde su definición":"Directa"}}]}
+
+DRAG::{"type":"choice","title":"Demostraciones y razonamiento","instruction":"Selecciona la mejor respuesta para cada caso.","bank":[{"questions":[{"q":"¿Qué método usarías para probar que no existe el mayor número entero?","options":["Contradicción","Directa","Tabla de verdad"],"answer":"Contradicción"},{"q":"Si un número es divisible entre 4, entonces es par. ¿Qué método puede usarse cómodamente?","options":["Directa o contraposición","Solo contradicción","Ninguno"],"answer":"Directa o contraposición"},{"q":"Si ahorro, compro computador. Si compro computador, programo mejor. No programo mejor. Entonces no ahorro. ¿El argumento es válido?","options":["Sí","No"],"answer":"Sí"},{"q":"La expresión [(p→q)∧(¬q)]→(¬p) corresponde a qué regla?","options":["Modus Tollens","Modus Ponens","Falacia de afirmación del consecuente"],"answer":"Modus Tollens"}]}]}`,
+      topics: [
+        "Inferencias lógicas",
+        "Argumentos válidos e inválidos",
+        "Reglas de inferencia",
+        "Métodos de demostración",
+        "Tablas de verdad",
+        "Falacias básicas"
+      ]
+    },
+    {
+      id: "clase-3",
+      title: "Cuantificadores y proposiciones abiertas",
+      image: "assets/course-matematicas-1-clase-3.svg",
+      description: "Tercera clase del curso dedicada a proposiciones abiertas, dominios, cuantificadores y traducción entre lenguaje cotidiano y lenguaje lógico.",
+      content: String.raw`## Objetivos de la clase
+
+Al finalizar esta clase, el estudiante estará en capacidad de:
+
+- Comprender el concepto de proposición abierta.
+- Identificar variables y dominios.
+- Interpretar cuantificadores universales y existenciales.
+- Negar proposiciones con cuantificadores.
+- Traducir expresiones del lenguaje cotidiano al lenguaje lógico.
+- Resolver ejercicios con cuantificadores.
+
+## Proposiciones abiertas
+
+Una proposición abierta es una expresión que contiene variables y cuyo valor de verdad depende de los valores asignados.
+
+### Ejemplo
+
+$$x > 5$$
+
+La expresión puede ser verdadera o falsa dependiendo del valor de \(x\).
+
+| Valor de \(x\) | Resultado |
+| --- | --- |
+| 8 | Verdadera |
+| 2 | Falsa |
+
+## Dominio de una variable
+
+El dominio corresponde al conjunto de valores permitidos para la variable.
+
+| Nombre | Símbolo |
+| --- | --- |
+| Números naturales | \(\mathbb{N}\) |
+| Números enteros | \(\mathbb{Z}\) |
+| Números reales | \(\mathbb{R}\) |
+
+## Cuantificador universal
+
+El cuantificador universal expresa que una propiedad se cumple para todos los elementos del dominio.
+
+### Símbolo
+
+$$\forall$$
+
+Se lee: “para todo”.
+
+### Ejemplo
+
+$$\forall x\in\mathbb{R},\ x^2\ge0$$
+
+Interpretación: para todo número real, su cuadrado es mayor o igual que cero.
+
+## Cuantificador existencial
+
+El cuantificador existencial expresa que existe al menos un elemento que cumple una propiedad.
+
+### Símbolo
+
+$$\exists$$
+
+Se lee: “existe”.
+
+### Ejemplo
+
+$$\exists x\in\mathbb{R},\ x^2=9$$
+
+Interpretación: existe un número real cuyo cuadrado es 9.
+
+## Diferencia entre cuantificadores
+
+| Tipo | Forma lógica | Idea principal |
+| --- | --- | --- |
+| Universal | \(\forall x, P(x)\) | Todos cumplen la propiedad |
+| Existencial | \(\exists x, P(x)\) | Al menos uno cumple la propiedad |
+
+## Negación de cuantificadores
+
+### Negación del cuantificador universal
+
+Regla:
+
+$$\neg(\forall x, P(x))\equiv\exists x, \neg P(x)$$
+
+Interpretación: “No todos cumplen” equivale a “Existe al menos uno que no cumple”.
+
+Ejemplo:
+
+- Enunciado: “Todos los estudiantes aprobaron”.
+- Negación: “Existe al menos un estudiante que no aprobó”.
+
+### Negación del cuantificador existencial
+
+Regla:
+
+$$\neg(\exists x, P(x))\equiv\forall x, \neg P(x)$$
+
+Interpretación: “No existe ninguno” equivale a “Todos incumplen”.
+
+Ejemplo:
+
+- Enunciado: “Existe un número negativo”.
+- Negación: “Todos los números son no negativos”.
+
+## Traducción entre lenguaje natural y lógico
+
+| Lenguaje natural | Lenguaje lógico |
+| --- | --- |
+| Todos los números naturales son positivos | \(\forall x\in\mathbb{N},\ x>0\) |
+| Existe un número entero par | \(\exists x\in\mathbb{Z},\ x\text{ es par}\) |
+| No todos los estudiantes aprobaron | \(\exists x,\ \neg A(x)\) |
+
+Donde \(A(x)\) significa “\(x\) aprobó”.
+
+## Cuantificadores múltiples
+
+### Ejemplo verdadero
+
+$$\forall x\in\mathbb{R},\ \exists y\in\mathbb{R},\ y>x$$
+
+Interpretación: para todo número real existe otro número mayor.
+
+### Ejemplo falso
+
+$$\exists x\in\mathbb{R},\ \forall y\in\mathbb{R},\ x>y$$
+
+Esto es falso porque no existe el mayor número real.
+
+## Visualizaciones de cuantificadores
+
+### Cuantificador universal y existencial
+
+- Universal: la propiedad debe cumplirse en cada elemento del dominio.
+- Existencial: basta con encontrar un solo elemento que la cumpla.
+
+### Negación de cuantificadores
+
+- Negar un universal produce un existencial con negación.
+- Negar un existencial produce un universal con negación.
+
+## Actividades interactivas
+
+DRAG::{"type":"categorize","title":"Proposiciones abiertas o proposiciones cerradas","instruction":"Clasifica cada expresión según corresponda.","bank":[{"items":["x+3=7","Bogotá es la capital de Colombia","y²>0","2 es primo","x es mayor que 1"],"groups":["Proposición abierta","Proposición cerrada"],"answers":{"x+3=7":"Proposición abierta","Bogotá es la capital de Colombia":"Proposición cerrada","y²>0":"Proposición abierta","2 es primo":"Proposición cerrada","x es mayor que 1":"Proposición abierta"}}]}
+
+DRAG::{"type":"match","title":"Cuantificadores y significado","instruction":"Relaciona cada expresión con su interpretación correcta.","bank":[{"targets":["∀x, P(x)","∃x, P(x)","¬(∀x, P(x))","¬(∃x, P(x))"],"items":["Existe al menos uno que cumple","No existe ninguno que cumpla","Todos cumplen","Existe al menos uno que no cumple"],"answers":{"∀x, P(x)":"Todos cumplen","∃x, P(x)":"Existe al menos uno que cumple","¬(∀x, P(x))":"Existe al menos uno que no cumple","¬(∃x, P(x))":"No existe ninguno que cumpla"}}]}
+
+DRAG::{"type":"choice","title":"Interpretación y verdad","instruction":"Selecciona la respuesta correcta en cada caso.","bank":[{"questions":[{"q":"¿Cuál es la lectura correcta de ∀x∈R, x²≥0?","options":["Para todo real, su cuadrado es no negativo","Existe un real cuyo cuadrado es no negativo","Todos los enteros son positivos"],"answer":"Para todo real, su cuadrado es no negativo"},{"q":"¿Es verdadera la afirmación ∀x∈R, x+1>x?","options":["Sí","No"],"answer":"Sí"},{"q":"¿Es verdadera la afirmación ∃x∈R, x²=-1?","options":["Sí","No"],"answer":"No"},{"q":"¿Cuál es la negación correcta de ∀x∈R, x<5?","options":["∃x∈R, x≥5","∀x∈R, x≥5","∃x∈R, x<5"],"answer":"∃x∈R, x≥5"}]},{"questions":[{"q":"¿Qué expresa ∃x∈Z, x²=16?","options":["Existe un entero cuyo cuadrado es 16","Todos los enteros tienen cuadrado 16","No existe entero con cuadrado 16"],"answer":"Existe un entero cuyo cuadrado es 16"},{"q":"¿Qué tipo de cuantificador aparece en ∃x∈R, x²=9?","options":["Existencial","Universal","Negado"],"answer":"Existencial"},{"q":"¿Cuál es la negación correcta de ∃x∈N, x²=2?","options":["∀x∈N, x²≠2","∃x∈N, x²≠2","∀x∈N, x²=2"],"answer":"∀x∈N, x²≠2"},{"q":"¿Qué afirma ∀x, ∃y, P(x,y) respecto de ∃y, ∀x, P(x,y)?","options":["No significan lo mismo","Siempre son equivalentes","La segunda siempre implica la primera y también al revés"],"answer":"No significan lo mismo"}]}]}
+
+DRAG::{"type":"choice","title":"Traducción lógica","instruction":"Elige la representación lógica más adecuada.","bank":[{"questions":[{"q":"‘Todos los números reales son mayores que -1000’ se expresa como:","options":["∀x∈R, x>-1000","∃x∈R, x>-1000","∀x∈Z, x>-1000"],"answer":"∀x∈R, x>-1000"},{"q":"‘Existe un número entero negativo’ se expresa como:","options":["∃x∈Z, x<0","∀x∈Z, x<0","∃x∈R, x>0"],"answer":"∃x∈Z, x<0"},{"q":"‘Existe un estudiante que aprobó’ puede escribirse como:","options":["∃x, A(x)","∀x, A(x)","∃x, ¬A(x)"],"answer":"∃x, A(x)"},{"q":"‘Para todo estudiante existe un examen aprobado’ se representa mejor como:","options":["∀x, ∃y, Aprobado(x,y)","∃y, ∀x, Aprobado(x,y)","∀x, ∀y, Aprobado(x,y)"],"answer":"∀x, ∃y, Aprobado(x,y)"}]},{"questions":[{"q":"‘Existe un número real mayor que todos los reales’ se expresa como:","options":["∃x∈R, ∀y∈R, x>y","∀x∈R, ∃y∈R, y>x","∃x∈R, x<0"],"answer":"∃x∈R, ∀y∈R, x>y"},{"q":"‘No todos los estudiantes aprobaron’ se traduce como:","options":["∃x, ¬A(x)","∀x, A(x)","¬∃x, A(x)"],"answer":"∃x, ¬A(x)"},{"q":"¿Cuál de estas es verdadera?","options":["∀x∈R, ∃y∈R, x+y=0","∃x∈R, ∀y∈R, x>y","∀x∈N, x²=2"],"answer":"∀x∈R, ∃y∈R, x+y=0"},{"q":"La expresión ∀x∈R, ∃y∈R, y>x es:","options":["Verdadera","Falsa"],"answer":"Verdadera"}]}]}`,
+      topics: [
+        "Proposiciones abiertas",
+        "Variables y dominios",
+        "Cuantificador universal",
+        "Cuantificador existencial",
+        "Negación de cuantificadores",
+        "Cuantificadores múltiples"
+      ]
+    },
+    {
+      id: "clase-4",
+      title: "Introducción a la teoría de conjuntos y operaciones con conjuntos",
+      image: "assets/course-matematicas-1-clase-4.svg",
+      description: "Cuarta clase del curso centrada en conjuntos, pertenencia, inclusión, operaciones básicas, diagramas de Venn y cardinalidad.",
+      content: String.raw`## Objetivos de la clase
+
+Al finalizar esta clase, el estudiante estará en capacidad de:
+
+1. Comprender el concepto de conjunto.
+2. Identificar relaciones de pertenencia e inclusión.
+3. Representar conjuntos de distintas formas.
+4. Aplicar operaciones entre conjuntos.
+5. Resolver problemas usando diagramas de Venn.
+6. Interpretar propiedades de conjuntos.
+
+## Introducción a la teoría de conjuntos
+
+Un conjunto es una colección bien definida de elementos. La expresión "bien definida" significa que puede decidirse con claridad si un objeto pertenece o no al conjunto.
+
+### Ejemplos
+
+Conjunto de vocales:
+
+$$A=\{a,e,i,o,u\}$$
+
+Conjunto de números pares:
+
+$$B=\{2,4,6,8,\dots\}$$
+
+## Formas de representar conjuntos
+
+### Por extensión
+
+Se escriben explícitamente todos los elementos del conjunto.
+
+#### Ejemplo
+
+$$A=\{1,2,3,4\}$$
+
+### Por comprensión
+
+Se describe una propiedad que cumplen los elementos del conjunto.
+
+#### Ejemplo
+
+$$A=\{x\in\mathbb{N}\mid x<5\}$$
+
+## Relación de pertenencia
+
+La pertenencia indica si un elemento forma parte o no de un conjunto.
+
+### Símbolos
+
+- Pertenece: \(\in\)
+- No pertenece: \(\notin\)
+
+### Ejemplos
+
+$$3\in\{1,2,3,4\}$$
+
+$$7\notin\{1,2,3,4\}$$
+
+### Fórmula importante
+
+$$3\in\{1,2,3,4\}$$
+
+## Subconjuntos
+
+Un conjunto \(A\) es subconjunto de \(B\) si todos los elementos de \(A\) pertenecen también a \(B\).
+
+### Símbolo
+
+$$A\subseteq B$$
+
+### Ejemplo
+
+$$\{1,2\}\subseteq\{1,2,3,4\}$$
+
+## Igualdad de conjuntos
+
+Dos conjuntos son iguales si contienen exactamente los mismos elementos, sin importar el orden en que estén escritos.
+
+$$A=B$$
+
+## Conjunto universal y conjunto vacío
+
+### Conjunto universal
+
+Es el conjunto que contiene todos los elementos considerados en un determinado contexto.
+
+Símbolo:
+
+$$U$$
+
+### Conjunto vacío
+
+Es el conjunto que no contiene elementos.
+
+Símbolos:
+
+$$\emptyset$$
+
+$$\{\}$$
+
+### Fórmula importante
+
+$$\emptyset \subseteq A$$
+
+## Operaciones entre conjuntos
+
+### Unión
+
+La unión contiene los elementos que pertenecen a \(A\), a \(B\) o a ambos.
+
+Símbolo:
+
+$$A\cup B$$
+
+Si
+
+$$A=\{1,2,3\}$$
+
+y
+
+$$B=\{3,4,5\}$$
+
+entonces
+
+$$A\cup B=\{1,2,3,4,5\}$$
+
+### Fórmula importante
+
+$$A\cup B$$
+
+### Intersección
+
+La intersección contiene los elementos comunes a ambos conjuntos.
+
+Símbolo:
+
+$$A\cap B$$
+
+Ejemplo:
+
+$$A\cap B=\{3\}$$
+
+### Fórmula importante
+
+$$A\cap B$$
+
+### Diferencia
+
+La diferencia \(A-B\) contiene los elementos que están en \(A\) pero no en \(B\).
+
+Símbolo:
+
+$$A-B$$
+
+Ejemplo:
+
+$$A-B=\{1,2\}$$
+
+### Complemento
+
+El complemento de \(A\) está formado por los elementos del conjunto universal que no pertenecen a \(A\).
+
+Símbolo:
+
+$$A^c$$
+
+### Fórmula importante
+
+$$A^c$$
+
+## Diagramas de Venn
+
+Los diagramas de Venn permiten representar gráficamente relaciones y operaciones entre conjuntos usando regiones dentro de un rectángulo que representa el conjunto universal.
+
+### Unión e intersección
+
+- En la unión, se sombrea toda la región de \(A\) y toda la región de \(B\), incluida la parte común.
+- En la intersección, se sombrea únicamente la parte compartida entre \(A\) y \(B\).
+- En la diferencia \(A-B\), se sombrea solo la parte de \(A\) que queda fuera de \(B\).
+- En el complemento de \(A\), se sombrea la región del universal que está fuera de \(A\).
+
+## Propiedades de operaciones con conjuntos
+
+### Propiedad conmutativa
+
+$$A\cup B=B\cup A$$
+
+$$A\cap B=B\cap A$$
+
+### Propiedad asociativa
+
+$$\left(A\cup B\right)\cup C=A\cup\left(B\cup C\right)$$
+
+$$\left(A\cap B\right)\cap C=A\cap\left(B\cap C\right)$$
+
+### Leyes de De Morgan
+
+$$\left(A\cup B\right)^c=A^c\cap B^c$$
+
+$$\left(A\cap B\right)^c=A^c\cup B^c$$
+
+## Cardinalidad de conjuntos
+
+La cardinalidad de un conjunto corresponde al número de elementos que contiene.
+
+Símbolo:
+
+$$|A|$$
+
+### Ejemplo
+
+Si
+
+$$A=\{1,2,3,4\}$$
+
+entonces
+
+$$|A|=4$$
+
+### Fórmula de cardinalidad para dos conjuntos
+
+$$|A\cup B|=|A|+|B|-|A\cap B|$$
+
+## Tabla resumen de operaciones
+
+| Operación | Símbolo | Idea clave |
+| --- | --- | --- |
+| Unión | \(A\cup B\) | Elementos de A o de B |
+| Intersección | \(A\cap B\) | Elementos comunes |
+| Diferencia | \(A-B\) | Elementos de A que no están en B |
+| Complemento | \(A^c\) | Elementos del universal fuera de A |
+
+## Actividades interactivas
+
+DRAG::{"type":"choice","title":"Pertenencia e inclusión","instruction":"Responde cada afirmación sobre conjuntos.","bank":[{"questions":[{"q":"¿Es verdadera la afirmación 2∈{1,2,3}?","options":["Sí","No"],"answer":"Sí"},{"q":"¿Es verdadera la afirmación 5∉{2,4,6}?","options":["Sí","No"],"answer":"Sí"},{"q":"¿Es correcta la afirmación {1,2}⊆{1,2,3}?","options":["Sí","No"],"answer":"Sí"},{"q":"Si A={1,2,3,4}, ¿7 pertenece a A?","options":["Sí","No"],"answer":"No"}]},{"questions":[{"q":"Si A={1,2,3,4}, ¿3 pertenece a A?","options":["Sí","No"],"answer":"Sí"},{"q":"¿Todo conjunto es subconjunto de sí mismo?","options":["Sí","No"],"answer":"Sí"},{"q":"¿El conjunto vacío tiene elementos?","options":["Sí","No"],"answer":"No"},{"q":"¿Es correcta la expresión ∅⊆A?","options":["Sí","No"],"answer":"Sí"}]}]}
+
+DRAG::{"type":"match","title":"Operaciones entre conjuntos","instruction":"Relaciona cada operación con su resultado correcto usando A={1,2,3} y B={3,4,5}.","bank":[{"targets":["A∪B","A∩B","A-B","B-A"],"items":["{3}","{4,5}","{1,2}","{1,2,3,4,5}"],"answers":{"A∪B":"{1,2,3,4,5}","A∩B":"{3}","A-B":"{1,2}","B-A":"{4,5}"}}]}
+
+DRAG::{"type":"categorize","title":"Clasifica expresiones de conjuntos","instruction":"Ubica cada expresión según corresponda.","bank":[{"items":["x∈A","A⊆B","A∪B","A=B","|A|","A^c"],"groups":["Relación","Operación","Propiedad o medida"],"answers":{"x∈A":"Relación","A⊆B":"Relación","A∪B":"Operación","A=B":"Propiedad o medida","|A|":"Propiedad o medida","A^c":"Operación"}}]}
+
+DRAG::{"type":"choice","title":"Cardinalidad y diagramas de Venn","instruction":"Selecciona la respuesta correcta en cada problema.","bank":[{"questions":[{"q":"Si |A|=12, |B|=9 y |A∩B|=4, entonces |A∪B| es:","options":["17","21","25"],"answer":"17"},{"q":"En un grupo de 40 estudiantes, 22 estudian matemáticas, 18 física y 10 ambas. ¿Cuántos estudian al menos una?","options":["30","40","50"],"answer":"30"},{"q":"Si 30 juegan fútbol, 20 baloncesto y 8 ambos, ¿cuántos practican solo fútbol?","options":["22","28","12"],"answer":"22"},{"q":"¿Qué región se sombrea en A∩B?","options":["Solo la parte común","Todo A y todo B","Solo la parte exterior de A"],"answer":"Solo la parte común"}]},{"questions":[{"q":"¿Qué expresa (A∪B)^c según De Morgan?","options":["A^c∩B^c","A^c∪B^c","A∩B"],"answer":"A^c∩B^c"},{"q":"La expresión (A∩B)∪(A∩B^c) se simplifica a:","options":["A","B","A^c"],"answer":"A"},{"q":"Si A={1,2,3,4,5} y B={2,4}, entonces A-B es:","options":["{1,2,3}","{1,3,5}","{2,4}"],"answer":"{1,3,5}"},{"q":"Si A es el conjunto de múltiplos de 2 y B el de múltiplos de 3, entonces A∩B contiene múltiplos de:","options":["6","5","2 solamente"],"answer":"6"}]}]}`,
+      topics: [
+        "Teoría de conjuntos",
+        "Pertenencia e inclusión",
+        "Conjunto vacío y universal",
+        "Operaciones con conjuntos",
+        "Diagramas de Venn",
+        "Cardinalidad"
+      ]
+    },
+    {
+      id: "clase-5",
+      title: "Conjuntos numéricos y propiedades de campo",
+      image: "assets/course-matematicas-1-clase-5.svg",
+      description: "Quinta clase del curso dedicada a los conjuntos numéricos, su relación de inclusión y las propiedades algebraicas fundamentales de los números reales.",
+      content: String.raw`## Objetivos de la clase
+
+Al finalizar esta clase, el estudiante estará en capacidad de:
+
+1. Identificar los principales conjuntos numéricos.
+2. Comprender la relación entre los conjuntos numéricos.
+3. Clasificar números según su naturaleza.
+4. Aplicar propiedades de campo en operaciones algebraicas.
+5. Resolver ejercicios con operaciones numéricas y propiedades algebraicas.
+
+## Conjuntos numéricos
+
+Los conjuntos numéricos organizan los números según sus propiedades y aplicaciones. Esta clasificación permite saber qué operaciones son válidas y en qué contexto se trabaja.
+
+## Números naturales
+
+Se utilizan principalmente para contar.
+
+### Símbolo
+
+$$\mathbb{N}$$
+
+### Ejemplo
+
+$$\mathbb{N}=\{1,2,3,4,5,\dots\}$$
+
+En algunos contextos también se incluye el cero dentro de \(\mathbb{N}\).
+
+## Números enteros
+
+Incluyen números negativos, positivos y el cero.
+
+### Símbolo
+
+$$\mathbb{Z}$$
+
+### Ejemplo
+
+$$\mathbb{Z}=\{\dots,-3,-2,-1,0,1,2,3,\dots\}$$
+
+## Números racionales
+
+Son los números que pueden escribirse como cociente entre dos enteros, con denominador distinto de cero.
+
+### Símbolo
+
+$$\mathbb{Q}$$
+
+### Forma general
+
+$$\frac{a}{b},\quad b\neq0$$
+
+### Ejemplos
+
+$$\frac{1}{2},\ -3,\ 0.75,\ 0.333\dots$$
+
+### Fórmula importante
+
+$$\mathbb{Q}=\left\{\frac{a}{b}\mid a,b\in\mathbb{Z},\ b\neq0\right\}$$
+
+## Números irracionales
+
+No pueden expresarse como fracción exacta entre enteros. Su desarrollo decimal es infinito y no periódico.
+
+### Ejemplos
+
+$$\sqrt{2},\ \pi,\ e$$
+
+## Números reales
+
+Incluyen todos los racionales e irracionales.
+
+### Símbolo
+
+$$\mathbb{R}$$
+
+## Números complejos
+
+Amplían a los reales incorporando la unidad imaginaria.
+
+### Forma general
+
+$$z=a+bi$$
+
+donde
+
+$$i^2=-1$$
+
+### Fórmula importante
+
+$$z=a+bi$$
+
+## Relación entre conjuntos numéricos
+
+$$\mathbb{N}\subseteq\mathbb{Z}\subseteq\mathbb{Q}\subseteq\mathbb{R}\subseteq\mathbb{C}$$
+
+Esta cadena muestra que cada conjunto está contenido en el siguiente.
+
+## Clasificación de números
+
+### Ejemplo 1
+
+$$-4$$
+
+Pertenece a:
+
+- \(\mathbb{Z}\)
+- \(\mathbb{Q}\)
+- \(\mathbb{R}\)
+
+### Ejemplo 2
+
+$$\sqrt{5}$$
+
+Pertenece a:
+
+- Irracionales
+- \(\mathbb{R}\)
+
+### Ejemplo 3
+
+$$3+2i$$
+
+Pertenece a:
+
+- \(\mathbb{C}\)
+
+## Propiedades de campo
+
+Los números reales satisfacen propiedades algebraicas fundamentales que permiten simplificar expresiones y justificar transformaciones.
+
+### Propiedad conmutativa
+
+El orden no altera el resultado.
+
+#### Suma
+
+$$a+b=b+a$$
+
+#### Multiplicación
+
+$$ab=ba$$
+
+### Fórmulas importantes
+
+$$a+b=b+a$$
+
+$$ab=ba$$
+
+### Propiedad asociativa
+
+La agrupación no altera el resultado.
+
+#### Suma
+
+$$\left(a+b\right)+c=a+\left(b+c\right)$$
+
+#### Multiplicación
+
+$$\left(ab\right)c=a\left(bc\right)$$
+
+### Fórmulas importantes
+
+$$\left(a+b\right)+c=a+\left(b+c\right)$$
+
+$$\left(ab\right)c=a\left(bc\right)$$
+
+### Propiedad distributiva
+
+La multiplicación distribuye sobre la suma:
+
+$$a\left(b+c\right)=ab+ac$$
+
+### Fórmula importante
+
+$$a\left(b+c\right)=ab+ac$$
+
+### Elemento neutro
+
+#### En la suma
+
+$$a+0=a$$
+
+#### En la multiplicación
+
+$$a\cdot1=a$$
+
+### Inverso aditivo
+
+$$a+\left(-a\right)=0$$
+
+### Inverso multiplicativo
+
+$$a\cdot\frac{1}{a}=1,\quad a\neq0$$
+
+### Fórmulas importantes
+
+$$a+\left(-a\right)=0$$
+
+$$a\cdot\frac{1}{a}=1$$
+
+## Valor absoluto
+
+El valor absoluto representa la distancia de un número al cero en la recta numérica, por eso nunca es negativo.
+
+### Definición
+
+$$|x|=\begin{cases}x & \text{si }x\geq0\\-x & \text{si }x<0\end{cases}$$
+
+### Fórmula importante
+
+$$|x|=\begin{cases}x & x\geq0\\-x & x<0\end{cases}$$
+
+## Operaciones básicas con propiedades
+
+### Ejemplo 1
+
+$$3(2+5)$$
+
+Aplicando distributiva:
+
+$$=3(2)+3(5)$$
+
+$$=6+15$$
+
+$$=21$$
+
+### Ejemplo 2
+
+$$\left(4+7\right)+3$$
+
+Aplicando asociativa:
+
+$$4+\left(7+3\right)$$
+
+$$4+10$$
+
+$$14$$
+
+## Tabla resumen de conjuntos numéricos
+
+| Conjunto | Símbolo | Idea clave |
+| --- | --- | --- |
+| Naturales | \(\mathbb{N}\) | Números para contar |
+| Enteros | \(\mathbb{Z}\) | Negativos, cero y positivos |
+| Racionales | \(\mathbb{Q}\) | Fracciones exactas |
+| Reales | \(\mathbb{R}\) | Racionales e irracionales |
+| Complejos | \(\mathbb{C}\) | Parte real e imaginaria |
+
+## Actividades interactivas
+
+DRAG::{"type":"categorize","title":"Clasificación de números","instruction":"Ubica cada número en el conjunto más adecuado según su naturaleza principal.","bank":[{"items":["-7","3/4","√3","5+2i","0","π"],"groups":["Entero","Racional no entero","Irracional","Complejo"],"answers":{"-7":"Entero","3/4":"Racional no entero","√3":"Irracional","5+2i":"Complejo","0":"Entero","π":"Irracional"}}]}
+
+DRAG::{"type":"match","title":"Relación entre conjuntos numéricos","instruction":"Relaciona cada conjunto con su descripción correcta.","bank":[{"targets":["ℕ","ℤ","ℚ","ℝ","ℂ"],"items":["Incluye parte real e imaginaria","Incluye racionales e irracionales","Fracciones de enteros con denominador no nulo","Números para contar","Negativos, cero y positivos"],"answers":{"ℕ":"Números para contar","ℤ":"Negativos, cero y positivos","ℚ":"Fracciones de enteros con denominador no nulo","ℝ":"Incluye racionales e irracionales","ℂ":"Incluye parte real e imaginaria"}}]}
+
+DRAG::{"type":"choice","title":"Propiedades de campo","instruction":"Selecciona la respuesta correcta en cada caso.","bank":[{"questions":[{"q":"¿Qué propiedad se usa en a+b=b+a?","options":["Conmutativa","Asociativa","Distributiva"],"answer":"Conmutativa"},{"q":"¿Qué propiedad aparece en (a+b)+c=a+(b+c)?","options":["Asociativa","Conmutativa","Inverso aditivo"],"answer":"Asociativa"},{"q":"¿Qué propiedad representa a(b+c)=ab+ac?","options":["Distributiva","Conmutativa","Neutro multiplicativo"],"answer":"Distributiva"},{"q":"¿Cuál es el inverso aditivo de 5?","options":["-5","1/5","0"],"answer":"-5"}]},{"questions":[{"q":"¿Cuál es el inverso multiplicativo de 4?","options":["1/4","-4","0"],"answer":"1/4"},{"q":"¿Cuánto vale |-7|?","options":["7","-7","0"],"answer":"7"},{"q":"¿A qué conjuntos pertenece -√9?","options":["ℤ, ℚ y ℝ","Solo ℂ","Solo irracionales"],"answer":"ℤ, ℚ y ℝ"},{"q":"¿Es verdadera la afirmación √2∈ℚ?","options":["No","Sí"],"answer":"No"}]}]}
+
+DRAG::{"type":"choice","title":"Operaciones y simplificación","instruction":"Resuelve cada ejercicio usando propiedades algebraicas.","bank":[{"questions":[{"q":"¿Cuál es el resultado de 5(x+3) aplicando distributiva?","options":["5x+15","5x+3","8x"],"answer":"5x+15"},{"q":"Simplifica 2(3x-4)+5x","options":["11x-8","6x+1","x-8"],"answer":"11x-8"},{"q":"Simplifica 3(2x-5)-2(x+4)","options":["4x-23","6x-7","x-18"],"answer":"4x-23"},{"q":"Si a=2, b=3 y c=5, ¿cuánto vale a(b+c)?","options":["16","10","13"],"answer":"16"}]},{"questions":[{"q":"¿Cuánto vale ab+ac si a=2, b=3 y c=5?","options":["16","15","10"],"answer":"16"},{"q":"¿Qué propiedad se verifica cuando a(b+c)=ab+ac y ambos lados dan el mismo resultado?","options":["Distributiva","Asociativa","Conmutativa"],"answer":"Distributiva"},{"q":"Si |x|=12, entonces x puede ser:","options":["12 o -12","Solo 12","Solo -12"],"answer":"12 o -12"},{"q":"Completa: ℕ⊆____⊆____⊆ℝ","options":["ℤ, ℚ","ℚ, ℤ","ℂ, ℚ"],"answer":"ℤ, ℚ"}]}]}`,
+      topics: [
+        "Conjuntos numéricos",
+        "Clasificación de números",
+        "Propiedades de campo",
+        "Valor absoluto",
+        "Operaciones algebraicas",
+        "Relaciones de inclusión"
+      ]
+    }
+  ]);
+
+  return [
+    {
+      id: "sobre-el-curso",
+      title: "Sobre el Curso",
+      subtitle: "Fundamentos de lógica y razonamiento para Matemáticas 1.",
+      description: "Curso inicial orientado a fortalecer la lógica matemática, el lenguaje formal y la interpretación correcta de proposiciones y tablas de verdad.",
+      content:
+        "## Introducción al curso de Matemáticas 1\n\nEste curso está diseñado para construir una base sólida en razonamiento matemático, lectura formal de enunciados y uso de herramientas lógicas fundamentales. El propósito es que el estudiante no solo memorice definiciones, sino que aprenda a analizar estructuras, justificar afirmaciones y resolver problemas con claridad.\n\n## Objetivos del curso\n\nAl finalizar el curso, el estudiante estará en capacidad de:\n\n- Interpretar y clasificar proposiciones matemáticas.\n- Aplicar conectores lógicos en contextos simbólicos y verbales.\n- Construir tablas de verdad y analizar equivalencias.\n- Desarrollar argumentos básicos con validez formal.\n- Fortalecer habilidades de razonamiento para cursos posteriores de matemáticas.\n\n## Metodología\n\nCada clase combina explicación conceptual, ejemplos guiados, ejercicios de práctica y actividades de razonamiento. El enfoque busca que cada tema sea comprendido antes de pasar al siguiente, manteniendo una progresión clara y acumulativa.",
+      topics: [
+        "Lógica matemática",
+        "Razonamiento formal",
+        "Lectura de enunciados",
+        "Tablas de verdad",
+        "Símbolos lógicos",
+        "Preparación para matemáticas superiores"
+      ]
+    }
+  ].concat(classModules);
 }
 
 function createCalculoMultivariableModules() {
@@ -1287,6 +2360,12 @@ window.PORTFOLIO_DATA = {
       desc: "Cursos para fortalecer bases y resolver problemas aplicados.",
       image: "assets/course-matematicas.svg",
       courses: [
+        {
+          id: "matematicas-1",
+          title: "Matemáticas 1",
+          image: "assets/course-matematicas-basicas.svg",
+          modules: safeCreateModules(createMatematicas1Modules)
+        },
         withModules({ id: "matematicas-basicas", title: "Matemáticas básicas", image: "assets/course-matematicas-basicas.svg" }),
         withModules({ id: "calculo-diferencial", title: "Cálculo diferencial", image: "assets/course-calculo-diferencial.svg" }),
         withModules({ id: "algebra-lineal", title: "Álgebra lineal", image: "assets/course-algebra-lineal.svg" }),
@@ -1339,6 +2418,7 @@ window.PORTFOLIO_DATA = {
 window.PORTFOLIO_COURSE_RELEASE = {
   enabledCourses: [
     "japones-n5",
+    "matematicas-1",
     "matematicas-basicas",
     "calculo-diferencial",
     "algebra-lineal",
